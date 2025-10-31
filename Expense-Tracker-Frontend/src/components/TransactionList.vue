@@ -18,6 +18,7 @@ interface Transaction {
     date: string
     type: string
     description: string
+    category: string
 
 }
 
