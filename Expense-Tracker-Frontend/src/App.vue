@@ -14,6 +14,7 @@ const transactionArray = ref([]) // Hier initialisieren
 
 onMounted(async () => {
   const response = await axios.get('http://localhost:8080/et/transactions')
+
   transactionArray.value = response.data
 })
 </script>

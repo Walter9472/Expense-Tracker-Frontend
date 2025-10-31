@@ -16,7 +16,7 @@ interface Transaction {
     title: string
     amount: number
     date: string
-    type: string
+    type: "INCOME"|"EXPENSE"
     description: string
     category: string
 
