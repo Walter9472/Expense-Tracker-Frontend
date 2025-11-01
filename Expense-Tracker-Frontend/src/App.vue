@@ -1,14 +1,23 @@
+<template>
+  <div id="app">
+    <Header />
+    <Balance/>
+    <IncomeExpense/>
+    <TransactionList :transactions="transactionArray" />
+    <AddTransaction/>
+  </div>
+</template>
+
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import CategoryList from './components/CategoryList.vue'
-import TransactionList from './components/TransactionList.vue'
+import Header from './components/layout/Header.vue'
+import Balance from './components/dashboard/Balance.vue'
+import IncomeExpense from './components/dashboard/IncomeExpense.vue'
+import TransactionList from './components/transactions/TransactionList.vue'
+import AddTransaction from './components/transactions/AddTransaction.vue'
 import axios from 'axios'
 
-const categoryArray = ref([
-  { id: 1, name: 'Lebensmittel' },
-  { id: 2, name: 'Miete' },
-  { id: 3, name: 'Freizeit' }
-])
 
 const transactionArray = ref([]) // Hier initialisieren
 
@@ -18,14 +27,5 @@ onMounted(async () => {
 })
 </script>
 
-<template>
-  <div id="app">
-    <TransactionList :transactions="transactionArray" />
-  </div>
-</template>
 
-<script lang="ts">
-export default {
-  components: { CategoryList, TransactionList },
-}
-</script>
+
