@@ -1,12 +1,12 @@
 <template>
-  <div class="transaction-item">
+  <div class="income-expense" >
     <div >
-      <h4>Einkommen</h4>
-      <p id="money-plus" class="money plus">+{{ income }}</p>
+      <h2>Einkommen</h2>
+      <h1  class="income">+{{ income }}€</h1>
     </div>
     <div>
-      <h4>Ausgaben</h4>
-      <p id="money-minus" class="money minus">-{{ expenses }}</p>
+      <h2>Ausgaben</h2>
+      <h1 class="expense">-{{ expenses }}€</h1>
     </div>
   </div>
 </template>

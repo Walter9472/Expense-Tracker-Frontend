@@ -241,13 +241,13 @@ ol {
   font-weight: 600;
 }
 
-/*.summary .stat-amount.income {*/
-/*  color: var(--color-income);*/
-/*}*/
+.summary .stat-amount.income {
+  color: var(--color-income);
+}
 
-/*.summary .stat-amount.expense {*/
-/*  color: var(--color-expense);*/
-/*}*/
+.summary .stat-amount.expense {
+  color: var(--color-expense);
+}
 
 /* --------------------------------------------------------------
    Cards & Transaction List
@@ -376,6 +376,42 @@ ol {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.income-expense {
+  display: flex;
+  justify-content: space-between; /* Platz zwischen den Elementen */
+  align-items: center; /* Vertikale Zentrierung */
+  padding: var(--space-lg);
+  margin: var(--space-md) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-alt);
+  box-shadow: var(--shadow-soft);
+  gap: var(--space-lg); /* Abstand zwischen den Spalten */
+}
+
+.income-expense:hover,
+.income-expense:focus-within {
+  border-color: var(--color-border-strong);
+  background-color: rgba(30, 42, 56, 0.03);
+}
+
+/* Für die getrennten Bereiche */
+.income-expense > div {
+  flex: 1;
+  padding: var(--space-md);
+}
+
+.income-expense .income {
+  color: var(--color-income);
+  border-right: 1px solid var(--color-border); /* Vertikale Trennung zwischen den Spalten */
+  padding-right: var(--space-lg);
+}
+
+.income-expense .expense {
+  color: var(--color-expense);
+  padding-left: var(--space-lg);
 }
 
 .table-row {

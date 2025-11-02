@@ -4,7 +4,7 @@
     <Balance :total="total" />
     <IncomeExpense :income="income" :expenses="expenses" />
     <TransactionList :transactions="transactionArray" />
-    <AddTransaction />
+    <AddTransaction  @transactionSubmitted="handleTransactionSubmitted"/>
   </div>
 </template>
 
@@ -18,17 +18,26 @@ import AddTransaction from './components/transactions/AddTransaction.vue'
 import axios from 'axios'
 
 
+import { useToast } from 'vue-toastification'
+
+const toast = useToast();
+
 const transactionArray = ref([]) // Hier initialisieren
 const total = ref();
 
 onMounted(async () => {
-  const responseGetTransactions = await axios.get('http://localhost:8080/et/transactions')
-  const responseGetTotal = await axios.get('http://localhost:8080/et/transactions/Balance')
-  transactionArray.value = responseGetTransactions.data
-  total.value = responseGetTotal.data
+  await loadTransactions();
+});
 
-  console.log(transactionArray)
-})
+const loadTransactions = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/et/transactions');
+    transactionArray.value = response.data;
+    calculateTotal();
+  } catch (error) {
+    toast.error('Fehler beim Laden der Transaktionen');
+  }
+};
 
 //Get TotalIncome
 const income = computed(() => {
@@ -50,4 +59,27 @@ const expenses = computed(() => {
 
 });
 
+// Gesamtbetrag berechnen
+const calculateTotal = () => {
+  total.value = Number(income.value) - Number(expenses.value);
+};
+
+// Neue Transaktion verarbeiten und an das Backend senden
+const handleTransactionSubmitted = async transactionData => {
+  try {
+    // Daten an die API senden (POST)
+    const response = await axios.post('http://localhost:8080/et/transactions', transactionData);
+
+    // Neue Transaktion zur Liste hinzufügen
+    transactionArray.value.push(response.data);
+
+    // Total und Liste aktualisieren
+    calculateTotal();
+
+    // Erfolgsnachricht anzeigen
+    toast.success('Neue Transaktion erfolgreich hinzugefügt!');
+  } catch (error) {
+    toast.error('Fehler beim Speichern der neuen Transaktion');
+  }
+};
 </script>
