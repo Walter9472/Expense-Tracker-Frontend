@@ -18,6 +18,9 @@
           <span class="transaction-title">{{ transaction.title }}</span>
           <span class="transaction-type">{{ transaction.type }}</span>
           <span class="transaction-date">{{ transaction.date }}</span>
+          <span v-if="transaction.category" class="transaction-category">
+            {{ transaction.category.name }}
+          </span>
         </div>
         <div class="transaction-actions">
           <span class="transaction-amount">
@@ -42,6 +45,13 @@ import { defineProps, computed } from 'vue'
 
 const emit = defineEmits(['transactionDeleted'])
 
+interface Category {
+  id: number
+  name: string
+  description?: string
+  color?: string
+}
+
 interface Transaction {
   id: number
   title: string
@@ -49,7 +59,7 @@ interface Transaction {
   date: string
   type: string
   description?: string
-  category?: string
+  category?: Category | null
 }
 
 const props = defineProps({
@@ -70,3 +80,10 @@ const deleteTransaction = (id: number) => {
   emit('transactionDeleted', id)
 }
 </script>
+
+<style scoped>
+.transaction-category {
+  font-size: 0.875rem;
+  color: var(--color-muted-text, #6b7280);
+}
+</style>
