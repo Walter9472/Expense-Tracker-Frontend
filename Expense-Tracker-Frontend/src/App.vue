@@ -8,15 +8,16 @@
       </aside>
 
       <section class="dashboard">
+        <AddTransaction
+          id="neue-transaktion"
+          @transactionSubmitted="handleTransactionSubmitted"
+        />
         <TransactionList
           id="transactions"
           :transactions="transactionArray"
           @transactionDeleted="handleTransactionDeleted"
         />
-        <AddTransaction
-          id="neue-transaktion"
-          @transactionSubmitted="handleTransactionSubmitted"
-        />
+
       </section>
     </section>
   </main>
