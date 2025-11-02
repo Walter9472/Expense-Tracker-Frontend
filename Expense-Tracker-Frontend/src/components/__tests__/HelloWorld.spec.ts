@@ -1,11 +1,14 @@
 import { describe, it, expect } from 'vitest'
-
 import { mount } from '@vue/test-utils'
-import HelloWorld from '../HelloWorld.vue'
 
-describe('HelloWorld', () => {
-  it('renders properly', () => {
-    const wrapper = mount(HelloWorld, { props: { msg: 'Hello Vitest' } })
-    expect(wrapper.text()).toContain('Hello Vitest')
+import Header from '../layout/Header.vue'
+
+describe('Header', () => {
+  it('renders navigation links', () => {
+    const wrapper = mount(Header)
+    const links = wrapper.findAll('a').map((link) => link.text())
+
+    expect(links).toContain('Transaktionen')
+    expect(links).toContain('Neue Transaktion')
   })
 })

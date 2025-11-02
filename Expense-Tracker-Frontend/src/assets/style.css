@@ -189,6 +189,12 @@ ol {
   gap: var(--space-xl);
 }
 
+.dashboard {
+  display: grid;
+  gap: var(--space-xl);
+  align-content: start;
+}
+
 .summary {
   position: sticky;
   top: calc(var(--space-2xl) + 72px);
@@ -291,8 +297,9 @@ ol {
 
 .transaction-item {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+  gap: var(--space-md);
   padding: var(--space-md);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
@@ -314,6 +321,13 @@ ol {
   font-weight: 600;
 }
 
+.transaction-type {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .transaction-date {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
@@ -323,6 +337,12 @@ ol {
   font-weight: 600;
   font-size: var(--font-size-lg);
   text-align: right;
+}
+
+.transaction-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
 
 /*.transaction-amount.income {*/
@@ -340,12 +360,49 @@ ol {
   border-right: 5px solid var(--color-expense);
 }
 
-.transaction-item.income .transaction-amount {
-  color: #00b894; /* Test: feste Farbe */
+.transaction-item.plus .transaction-amount {
+  color: var(--color-income);
 }
 
-.transaction-item.expense .transaction-amount {
-  color: #d63031; /* Test: feste Farbe */
+.transaction-item.minus .transaction-amount {
+  color: var(--color-expense);
+}
+
+.transaction-item.empty {
+  display: flex;
+  justify-content: center;
+  border-style: dashed;
+  color: var(--color-text-secondary);
+}
+
+.empty-state {
+  font-size: var(--font-size-sm);
+}
+
+.transaction-card .card-subtitle {
+  margin: 0;
+}
+
+.delete-btn {
+  border: none;
+  background: rgba(214, 48, 49, 0.08);
+  color: var(--color-expense);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-base), background-color var(--transition-base);
+}
+
+.delete-btn:hover,
+.delete-btn:focus-visible {
+  background: rgba(214, 48, 49, 0.16);
+  transform: translateY(-1px);
 }
 
 /* State accents for cards */
@@ -647,6 +704,14 @@ ol {
   .container {
     margin: var(--space-xl) auto;
     padding: 0 var(--space-md) var(--space-xl);
+  }
+
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .summary {
+    position: static;
   }
 
   .card {

@@ -1,16 +1,29 @@
 <template>
   <Header />
-  <div class="container">
-    <Balance :total="total" />
-    <IncomeExpense :income="income" :expenses="expenses" />
-    <TransactionList :transactions="transactionArray"
-                     @transactionDeleted="handleTransactionDeleted" />
-    <AddTransaction @transactionSubmitted="handleTransactionSubmitted" />
-  </div>
+  <main class="container">
+    <section class="content">
+      <aside class="summary">
+        <Balance :total="total" />
+        <IncomeExpense :income="income" :expenses="expenses" />
+      </aside>
+
+      <section class="dashboard">
+        <TransactionList
+          id="transactions"
+          :transactions="transactionArray"
+          @transactionDeleted="handleTransactionDeleted"
+        />
+        <AddTransaction
+          id="neue-transaktion"
+          @transactionSubmitted="handleTransactionSubmitted"
+        />
+      </section>
+    </section>
+  </main>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, handleError } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Header from './components/layout/Header.vue'
 import Balance from './components/dashboard/Balance.vue'
 import IncomeExpense from './components/dashboard/IncomeExpense.vue'
@@ -22,8 +35,19 @@ import { useToast } from 'vue-toastification'
 
 const toast = useToast()
 
-const transactionArray = ref([]) // Hier initialisieren
-const total = ref()
+interface Transaction {
+  id: number
+  title: string
+  amount: number
+  date: string
+  type: 'EINKOMMEN' | 'AUSGABEN'
+  description?: string
+  category?: string
+}
+
+type TransactionPayload = Omit<Transaction, 'id'>
+
+const transactionArray = ref<Transaction[]>([])
 
 onMounted(async () => {
   await loadTransactions()
@@ -31,51 +55,41 @@ onMounted(async () => {
 
 const loadTransactions = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/et/transactions')
+    const response = await axios.get<Transaction[]>('http://localhost:8080/et/transactions')
     transactionArray.value = response.data
-    calculateTotal()
   } catch (error) {
     toast.error('Fehler beim Laden der Transaktionen')
   }
 }
 
-//Get TotalIncome
 const income = computed(() => {
   return transactionArray.value
     .filter((transaction) => transaction.type == 'EINKOMMEN')
     .reduce((acc, transaction) => {
       return acc + transaction.amount
     }, 0)
-    .toFixed(2)
 })
 
-// Get TotalExpense
 const expenses = computed(() => {
   return transactionArray.value
     .filter((transaction) => transaction.type == 'AUSGABEN')
     .reduce((acc, transaction) => {
       return acc + transaction.amount
     }, 0)
-    .toFixed(2)
 })
 
-// Gesamtbetrag berechnen
-const calculateTotal = () => {
-  total.value = Number(income.value) - Number(expenses.value);
-}
+const total = computed(() => Number((income.value - expenses.value).toFixed(2)))
 
 // Neue Transaktion verarbeiten und an das Backend senden
-const handleTransactionSubmitted = async (transactionData) => {
+const handleTransactionSubmitted = async (transactionData: TransactionPayload) => {
   try {
     // Daten an die API senden (POST)
-    const response = await axios.post('http://localhost:8080/et/transactions', transactionData)
+    const response = await axios.post<Transaction>('http://localhost:8080/et/transactions', transactionData)
 
     // Neue Transaktion zur Liste hinzufügen
     transactionArray.value.push(response.data)
 
     // Total und Liste aktualisieren
-    calculateTotal()
-
     // Erfolgsnachricht anzeigen
     toast.success('Neue Transaktion erfolgreich hinzugefügt!')
   } catch (error) {
@@ -85,9 +99,8 @@ const handleTransactionSubmitted = async (transactionData) => {
 
 const refreshData = async () => {
   try {
-    const response = await axios.get("http://localhost:8080/et/transactions");
+    const response = await axios.get<Transaction[]>("http://localhost:8080/et/transactions");
     transactionArray.value = response.data;
-    calculateTotal();
   } catch (error) {
     toast.error('Fehler beim Laden der Transaktionsdaten.');
   }
