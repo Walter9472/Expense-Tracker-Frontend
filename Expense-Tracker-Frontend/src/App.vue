@@ -17,7 +17,6 @@
         <TransactionList
           id="transactions"
           :transactions="transactionArray"
-          :categories="categories"
           @transactionDeleted="handleTransactionDeleted"
         />
 
@@ -40,7 +39,7 @@ import { useToast } from 'vue-toastification'
 const toast = useToast()
 
 interface Category {
-  id: number
+  id: number | null
   name: string
   description?: string
   color?: string
@@ -77,7 +76,7 @@ const loadTransactions = async () => {
   try {
     const response = await axios.get<Transaction[]>('http://localhost:8080/et/transactions')
     transactionArray.value = response.data
-  } catch (error) {
+  } catch {
     toast.error('Fehler beim Laden der Transaktionen')
   }
 }
@@ -86,7 +85,7 @@ const loadCategories = async () => {
   try {
     const response = await axios.get<Category[]>('http://localhost:8080/et/categories')
     categories.value = response.data
-  } catch (error) {
+  } catch {
     toast.error('Fehler beim Laden der Kategorien')
   }
 }
@@ -120,21 +119,20 @@ const handleTransactionSubmitted = async (transactionData: TransactionPayload) =
       category: { id: categoryId },
     })
 
-    // Neue Transaktion zur Liste hinzufügen
-    const matchedCategory =
-      response.data.category && response.data.category.name
-        ? response.data.category
-        : categories.value.find((category) => category.id === categoryId) ?? response.data.category ?? null
+    // Neue Transaktion zur Liste hinzufügen (sicherstellen, dass die Kategorie vollständig ist)
+    const newTx = (() => {
+      const tx = response.data
+      if (!tx.category || (tx.category && tx.category.name === undefined)) {
+        const cat = categories.value.find(c => c.id === categoryId)
+        return { ...tx, category: cat ?? tx.category ?? null }
+      }
+      return tx
+    })()
+    transactionArray.value.push(newTx)
 
-    transactionArray.value.push({
-      ...response.data,
-      category: matchedCategory,
-    })
-
-    // Total und Liste aktualisieren
     // Erfolgsnachricht anzeigen
     toast.success('Neue Transaktion erfolgreich hinzugefügt!')
-  } catch (error) {
+  } catch {
     toast.error('Fehler beim Speichern der neuen Transaktion')
   }
 }
@@ -155,7 +153,7 @@ const refreshData = async () => {
   try {
     const response = await axios.get<Transaction[]>("http://localhost:8080/et/transactions");
     transactionArray.value = response.data;
-  } catch (error) {
+  } catch {
     toast.error('Fehler beim Laden der Transaktionsdaten.');
   }
 };
@@ -170,7 +168,7 @@ const handleTransactionDeleted = async (id: number) => {
 
     // Aktualisiere die Transaktionsliste
     await refreshData();
-  } catch (error) {
+  } catch {
     // Fehlermeldung anzeigen
     toast.error('Fehler beim Löschen der Transaktion.');
   }

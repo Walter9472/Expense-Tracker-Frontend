@@ -19,7 +19,12 @@
           <span class="transaction-type">{{ transaction.type }}</span>
           <span class="transaction-date">{{ transaction.date }}</span>
           <span v-if="transaction.category" class="transaction-category">
-            {{ transaction.category.name }}
+            <span
+              class="category-dot"
+              :style="{ backgroundColor: transaction.category.color || '#9CA3AF' }"
+              aria-hidden="true"
+            ></span>
+            <span class="category-name">{{ transaction.category.name }}</span>
           </span>
         </div>
         <div class="transaction-actions">
@@ -124,7 +129,20 @@ const deleteTransaction = (id: number) => {
 
 <style scoped>
 .transaction-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: 0.875rem;
-  color: var(--color-muted-text, #6b7280);
+  color: #6b7280; /* muted text */
+}
+.category-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+.category-name {
+  line-height: 1;
 }
 </style>

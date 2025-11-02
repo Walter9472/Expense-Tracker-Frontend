@@ -48,11 +48,11 @@
           <select
             id="category"
             class="select-field"
-            v-model="selectedCategoryId"
-            required
+            :key="categoriesKey"
+            v-model="selectedCategory"
           >
-            <option disabled value="">-- Bitte auswählen --</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
+            <option disabled :value="null">-- Bitte auswählen --</option>
+            <option v-for="category in categories" :key="category.name + String(category.id ?? '')" :value="category">
               {{ category.name }}
             </option>
           </select>
@@ -109,11 +109,11 @@
   </section>
 </template>
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { useToast } from 'vue-toastification'
 
 interface Category {
-  id: number
+  id: number | null
   name: string
   description?: string
   color?: string
@@ -126,7 +126,7 @@ interface TransactionPayload {
   amount: number
   type: TransactionType
   date: string
-  categoryId: number
+  category: Category
 }
 
 interface NewCategoryPayload {
@@ -143,7 +143,7 @@ const props = defineProps<{
 const title = ref('')
 const amount = ref('')
 const type = ref<TransactionType | ''>('')
-const selectedCategoryId = ref<number | ''>('')
+const selectedCategory = ref<Category | null>(null)
 
 const showCreateCategory = ref(false)
 const newCategoryName = ref('')
@@ -157,6 +157,8 @@ const toast = useToast()
 const transactionTypes: TransactionType[] = ['EINKOMMEN', 'AUSGABEN']
 
 const categories = computed(() => props.categories)
+// Key to force re-render of the select when categories change (e.g., after creating a new one)
+const categoriesKey = computed(() => props.categories.length)
 
 const onSubmit = () => {
   if (!title.value || !amount.value || !type.value) {
@@ -170,7 +172,7 @@ const onSubmit = () => {
     return
   }
 
-  if (!selectedCategoryId.value) {
+  if (!selectedCategory.value || !selectedCategory.value.name) {
     toast.error('Bitte eine Kategorie auswählen')
     return
   }
@@ -182,7 +184,7 @@ const onSubmit = () => {
     amount: Number(parsedAmount.toFixed(2)),
     type: type.value as TransactionType,
     date: today,
-    categoryId: Number(selectedCategoryId.value),
+    category: selectedCategory.value as Category,
   }
 
   emit('transactionSubmitted', newTransaction)
@@ -190,7 +192,7 @@ const onSubmit = () => {
   title.value = ''
   amount.value = ''
   type.value = ''
-  selectedCategoryId.value = ''
+  selectedCategory.value = null
 }
 
 const toggleCreateCategory = () => {
@@ -216,10 +218,12 @@ const createCategoryHandler = async () => {
       color: newCategoryColor.value || undefined,
     })
 
-    selectedCategoryId.value = createdCategory.id
+    // Warten, bis die aktualisierten Kategorien im DOM angekommen sind
+    await nextTick()
+    selectedCategory.value = createdCategory
     showCreateCategory.value = false
     resetCategoryForm()
-  } catch (error) {
+  } catch {
     // Fehler werden bereits im Parent gehandhabt
   }
 }
@@ -271,7 +275,7 @@ const createCategoryHandler = async () => {
 }
 
 .btn.secondary {
-  background-color: var(--color-muted, #4b5563);
+  background-color: #4b5563; /* muted */
 }
 
 .btn.secondary:hover {
