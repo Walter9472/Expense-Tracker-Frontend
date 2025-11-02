@@ -18,13 +18,8 @@
           <span class="transaction-title">{{ transaction.title }}</span>
           <span class="transaction-type">{{ transaction.type }}</span>
           <span class="transaction-date">{{ transaction.date }}</span>
-          <span v-if="category" class="transaction-category">
-            <span
-              class="transaction-category__color"
-              :style="{ backgroundColor: category.color || fallbackCategoryColor }"
-              aria-hidden="true"
-            ></span>
-            {{ category.name }}
+          <span v-if="transaction.category" class="transaction-category">
+            {{ transaction.category.name }}
           </span>
         </div>
         <div class="transaction-actions">
@@ -65,7 +60,6 @@ interface Transaction {
   type: string
   description?: string
   category?: Category | null
-  categoryId?: number
 }
 
 const props = defineProps({
@@ -131,20 +125,6 @@ const deleteTransaction = (id: number) => {
 <style scoped>
 .transaction-category {
   font-size: 0.875rem;
-  color: var(--color-muted-text, #374151);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: 9999px;
-  background-color: var(--color-surface-muted, #f3f4f6);
-  padding: 0.125rem 0.5rem;
-}
-
-.transaction-category__color {
-  width: 0.625rem;
-  height: 0.625rem;
-  border-radius: 9999px;
-  border: 1px solid var(--color-border, #e5e7eb);
-  display: inline-block;
+  color: var(--color-muted-text, #6b7280);
 }
 </style>

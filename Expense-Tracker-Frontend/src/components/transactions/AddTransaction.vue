@@ -52,7 +52,7 @@
             required
           >
             <option disabled value="">-- Bitte auswählen --</option>
-            <option v-for="category in categories" :key="category.id" :value="String(category.id)">
+            <option v-for="category in categories" :key="category.id" :value="category.id">
               {{ category.name }}
             </option>
           </select>
@@ -143,7 +143,7 @@ const props = defineProps<{
 const title = ref('')
 const amount = ref('')
 const type = ref<TransactionType | ''>('')
-const selectedCategoryId = ref<string>('')
+const selectedCategoryId = ref<number | ''>('')
 
 const showCreateCategory = ref(false)
 const newCategoryName = ref('')
@@ -170,7 +170,7 @@ const onSubmit = () => {
     return
   }
 
-  if (selectedCategoryId.value === '') {
+  if (!selectedCategoryId.value) {
     toast.error('Bitte eine Kategorie auswählen')
     return
   }
@@ -216,12 +216,7 @@ const createCategoryHandler = async () => {
       color: newCategoryColor.value || undefined,
     })
 
-    if (createdCategory.id == null) {
-      toast.error('Die erstellte Kategorie konnte nicht ausgewählt werden')
-      return
-    }
-
-    selectedCategoryId.value = String(createdCategory.id)
+    selectedCategoryId.value = createdCategory.id
     showCreateCategory.value = false
     resetCategoryForm()
   } catch (error) {
