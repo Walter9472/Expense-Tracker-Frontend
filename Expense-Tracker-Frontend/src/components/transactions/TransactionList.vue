@@ -1,6 +1,7 @@
 <template>
-    <div>
-        <ul class="transaction-list">
+  <h3>Transaktionen</h3>
+  <div class="transaction-item">
+        <ul id="list" class="transaction-list">
             <li v-for="transaction in transactions"
                 :key="transaction.id"
                 class="transaction-item"
