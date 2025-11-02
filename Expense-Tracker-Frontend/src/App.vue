@@ -17,6 +17,7 @@
         <TransactionList
           id="transactions"
           :transactions="transactionArray"
+          :categories="categories"
           @transactionDeleted="handleTransactionDeleted"
         />
 
@@ -120,7 +121,15 @@ const handleTransactionSubmitted = async (transactionData: TransactionPayload) =
     })
 
     // Neue Transaktion zur Liste hinzufügen
-    transactionArray.value.push(response.data)
+    const matchedCategory =
+      response.data.category && response.data.category.name
+        ? response.data.category
+        : categories.value.find((category) => category.id === categoryId) ?? response.data.category ?? null
+
+    transactionArray.value.push({
+      ...response.data,
+      category: matchedCategory,
+    })
 
     // Total und Liste aktualisieren
     // Erfolgsnachricht anzeigen

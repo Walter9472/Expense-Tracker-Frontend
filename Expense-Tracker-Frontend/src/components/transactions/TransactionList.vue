@@ -5,11 +5,11 @@
       <p class="card-subtitle">Überblick über deine letzten Buchungen</p>
     </header>
     <ul class="transaction-list">
-      <li v-if="!transactions.length" class="transaction-item empty">
+      <li v-if="!transactionItems.length" class="transaction-item empty">
         <span class="empty-state">Es wurden noch keine Transaktionen erfasst.</span>
       </li>
       <li
-        v-for="transaction in transactions"
+        v-for="{ transaction, category } in transactionItems"
         :key="transaction.id"
         class="transaction-item"
         :class="transaction.type === 'EINKOMMEN' ? 'plus' : 'minus'"
@@ -67,9 +67,50 @@ const props = defineProps({
     type: Array as () => Transaction[],
     required: true,
   },
+  categories: {
+    type: Array as () => Category[],
+    required: true,
+  },
 })
 
 const transactions = computed(() => props.transactions)
+const categories = computed(() => props.categories)
+
+const categoriesById = computed(() => {
+  const map = new Map<number, Category>()
+  categories.value.forEach((category) => {
+    map.set(category.id, category)
+  })
+  return map
+})
+
+const fallbackCategoryColor = '#9ca3af'
+
+const resolveCategory = (transaction: Transaction): Category | null => {
+  if (transaction.category) {
+    if (transaction.category.name) {
+      return transaction.category
+    }
+
+    if (typeof transaction.category.id === 'number') {
+      return categoriesById.value.get(transaction.category.id) ?? transaction.category
+    }
+  }
+
+  const fallbackId = (transaction as { categoryId?: number }).categoryId
+  if (typeof fallbackId === 'number') {
+    return categoriesById.value.get(fallbackId) ?? null
+  }
+
+  return null
+}
+
+const transactionItems = computed(() => {
+  return transactions.value.map((transaction) => ({
+    transaction,
+    category: resolveCategory(transaction),
+  }))
+})
 
 const formatAmount = (amount: number, type: string) => {
   const sign = type === 'EINKOMMEN' ? '+' : '-'
