@@ -10,11 +10,14 @@
       <section class="dashboard">
         <AddTransaction
           id="neue-transaktion"
+          :categories="categories"
+          :create-category="handleCreateCategory"
           @transactionSubmitted="handleTransactionSubmitted"
         />
         <TransactionList
           id="transactions"
           :transactions="transactionArray"
+          :categories="categories"
           @transactionDeleted="handleTransactionDeleted"
         />
 
@@ -36,6 +39,13 @@ import { useToast } from 'vue-toastification'
 
 const toast = useToast()
 
+interface Category {
+  id: number
+  name: string
+  description?: string
+  color?: string
+}
+
 interface Transaction {
   id: number
   title: string
@@ -43,15 +53,24 @@ interface Transaction {
   date: string
   type: 'EINKOMMEN' | 'AUSGABEN'
   description?: string
-  category?: string
+  category?: Category | null
 }
 
-type TransactionPayload = Omit<Transaction, 'id'>
+type TransactionPayload = Omit<Transaction, 'id' | 'category'> & {
+  categoryId: number
+}
+
+interface NewCategoryPayload {
+  name: string
+  description?: string
+  color?: string
+}
 
 const transactionArray = ref<Transaction[]>([])
+const categories = ref<Category[]>([])
 
 onMounted(async () => {
-  await loadTransactions()
+  await Promise.all([loadTransactions(), loadCategories()])
 })
 
 const loadTransactions = async () => {
@@ -60,6 +79,15 @@ const loadTransactions = async () => {
     transactionArray.value = response.data
   } catch (error) {
     toast.error('Fehler beim Laden der Transaktionen')
+  }
+}
+
+const loadCategories = async () => {
+  try {
+    const response = await axios.get<Category[]>('http://localhost:8080/et/categories')
+    categories.value = response.data
+  } catch (error) {
+    toast.error('Fehler beim Laden der Kategorien')
   }
 }
 
@@ -84,17 +112,42 @@ const total = computed(() => Number((income.value - expenses.value).toFixed(2)))
 // Neue Transaktion verarbeiten und an das Backend senden
 const handleTransactionSubmitted = async (transactionData: TransactionPayload) => {
   try {
+    const { categoryId, ...transactionWithoutCategory } = transactionData
+
     // Daten an die API senden (POST)
-    const response = await axios.post<Transaction>('http://localhost:8080/et/transactions', transactionData)
+    const response = await axios.post<Transaction>('http://localhost:8080/et/transactions', {
+      ...transactionWithoutCategory,
+      category: { id: categoryId },
+    })
 
     // Neue Transaktion zur Liste hinzufügen
-    transactionArray.value.push(response.data)
+    const matchedCategory =
+      response.data.category && response.data.category.name
+        ? response.data.category
+        : categories.value.find((category) => category.id === categoryId) ?? response.data.category ?? null
+
+    transactionArray.value.push({
+      ...response.data,
+      category: matchedCategory,
+    })
 
     // Total und Liste aktualisieren
     // Erfolgsnachricht anzeigen
     toast.success('Neue Transaktion erfolgreich hinzugefügt!')
   } catch (error) {
     toast.error('Fehler beim Speichern der neuen Transaktion')
+  }
+}
+
+const handleCreateCategory = async (newCategory: NewCategoryPayload) => {
+  try {
+    const response = await axios.post<Category>('http://localhost:8080/et/categories', newCategory)
+    categories.value.push(response.data)
+    toast.success('Kategorie wurde erstellt')
+    return response.data
+  } catch (error) {
+    toast.error('Fehler beim Erstellen der Kategorie')
+    throw error
   }
 }
 
