@@ -1,9 +1,12 @@
 <template>
     <div>
-        <ul class="list">
-            <li v-for="transaction in transactions" :key="transaction.id" >
+        <ul class="transaction-list">
+            <li v-for="transaction in transactions"
+                :key="transaction.id"
+                class="transaction-item"
+                :class="transaction.type == 'EINKOMMEN' ? 'plus' : 'minus'">
               <span class="transaction-title">{{ transaction.title }} </span>
-              <span class="transaction-amount">{{ transaction.amount  }}€ </span>
+              <span class="transaction-amount" >{{ transaction.amount  }}€ </span>
               <span class="transaction-type">{{ transaction.type }} </span>
               <span class="transaction-date">{{ transaction.date }} </span>
             </li>

@@ -79,6 +79,11 @@ body {
   font-size: var(--font-size-md);
   line-height: var(--line-height-base);
   color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
   background: linear-gradient(180deg, #eef1f5 0%, #f9fafb 100%);
   -webkit-font-smoothing: antialiased;
 }
@@ -236,13 +241,13 @@ ol {
   font-weight: 600;
 }
 
-.summary .stat-amount.income {
-  color: var(--color-income);
-}
+/*.summary .stat-amount.income {*/
+/*  color: var(--color-income);*/
+/*}*/
 
-.summary .stat-amount.expense {
-  color: var(--color-expense);
-}
+/*.summary .stat-amount.expense {*/
+/*  color: var(--color-expense);*/
+/*}*/
 
 /* --------------------------------------------------------------
    Cards & Transaction List
@@ -320,12 +325,27 @@ ol {
   text-align: right;
 }
 
-.transaction-amount.income {
-  color: var(--color-income);
+/*.transaction-amount.income {*/
+/*  color: var(--color-income);*/
+/*}*/
+
+/*.transaction-amount.expense {*/
+/*  color: var(--color-expense);*/
+/*}*/
+.transaction-list li.plus {
+  border-right: 5px solid var(--color-income);
 }
 
-.transaction-amount.expense {
-  color: var(--color-expense);
+.transaction-list li.minus {
+  border-right: 5px solid var(--color-expense);
+}
+
+.transaction-item.income .transaction-amount {
+  color: #00b894; /* Test: feste Farbe */
+}
+
+.transaction-item.expense .transaction-amount {
+  color: #d63031; /* Test: feste Farbe */
 }
 
 /* State accents for cards */

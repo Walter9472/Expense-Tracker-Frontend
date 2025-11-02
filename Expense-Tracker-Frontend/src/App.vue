@@ -1,6 +1,6 @@
 <template>
-  <div id="app">
-    <Header />
+  <Header />
+  <div class="container">
     <Balance/>
     <IncomeExpense/>
     <TransactionList :transactions="transactionArray" />
