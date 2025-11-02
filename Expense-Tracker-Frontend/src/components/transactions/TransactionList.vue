@@ -10,6 +10,7 @@
               <span class="transaction-amount" >{{ transaction.amount  }}€ </span>
               <span class="transaction-type">{{ transaction.type }} </span>
               <span class="transaction-date">{{ transaction.date }} </span>
+              <button @click="deleteTransaction(transaction.id)" class="delete-btn">x</button>
             </li>
         </ul>
     </div>
@@ -17,6 +18,7 @@
 
 <script setup lang="ts">
 import { defineProps } from 'vue';
+const emit =defineEmits(['transactionDeleted'])
 
 interface Transaction {
     id: number
@@ -36,4 +38,8 @@ const props = defineProps({
   }
 
 })
+
+const deleteTransaction = (id) =>{
+  emit('transactionDeleted',id)
+}
 </script>
