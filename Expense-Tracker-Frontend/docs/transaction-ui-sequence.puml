@@ -1,0 +1,37 @@
+@startuml
+actor Benutzer as User
+participant "AddTransaction.vue" as AddTransaction
+participant "App.vue" as App
+participant "axios.post('http://localhost:8080/et/categories')" as CategoriesAPI
+participant "axios.post('http://localhost:8080/et/transactions')" as TransactionsAPI
+participant "transactionArray.value" as TransactionStore
+participant "categories.value" as CategoriesStore
+
+== Kategorie anlegen ==
+User -> AddTransaction : Klick auf Link\n"Neue Kategorie erstellen"\n(toggleCreateCategory())
+AddTransaction -> AddTransaction : showCreateCategory.value = !showCreateCategory.value
+User -> AddTransaction : Klick auf Button\n"Kategorie speichern"\n(createCategoryHandler())
+AddTransaction -> AddTransaction : Prüfe newCategoryName.value.trim()
+AddTransaction -> App : props.createCategory({\n  name: newCategoryName.value.trim(),\n  description: newCategoryDescription.value.trim() || undefined,\n  color: newCategoryColor.value || undefined\n})
+App -> CategoriesAPI : handleCreateCategory()\naxios.post('http://localhost:8080/et/categories', newCategory)
+CategoriesAPI --> App : response.data as createdCategory
+App -> CategoriesStore : categories.value.push(createdCategory)
+App --> AddTransaction : return createdCategory
+AddTransaction -> AddTransaction : await nextTick()
+AddTransaction -> AddTransaction : selectedCategory.value = createdCategory
+AddTransaction -> AddTransaction : showCreateCategory.value = false\nresetCategoryForm() -> setzt\nnewCategoryName.value = ''\nnewCategoryDescription.value = ''\nnewCategoryColor.value = '#4f46e5'
+
+== Transaktion anlegen ==
+User -> AddTransaction : Formular absenden\n(onSubmit())
+AddTransaction -> AddTransaction : Validierung von title.value, amount.value, type.value
+AddTransaction -> AddTransaction : parsedAmount = Number.parseFloat(amount.value)
+AddTransaction -> AddTransaction : newTransaction = {\n  title: title.value.trim(),\n  amount: Number(parsedAmount.toFixed(2)),\n  type: type.value,\n  date: new Date().toISOString().slice(0, 10),\n  category: selectedCategory.value\n}
+AddTransaction -> App : emit('transactionSubmitted', newTransaction)
+App -> App : const { category, ...transactionWithoutCategory } = transactionData
+App -> TransactionsAPI : handleTransactionSubmitted()\naxios.post('http://localhost:8080/et/transactions', {\n  ...transactionWithoutCategory,\n  category: category?.id ? { id: category.id } : category\n})
+TransactionsAPI --> App : response.data as txFromServer
+App -> App : const categoryFromServer = txFromServer.category
+App -> App : resolvedCategory = categoryFromServer ?\n  categoryFromServer :\n  (category?.id ? categories.value.find(c => c.id === category.id) ?? category : category ?? null)
+App -> TransactionStore : transactionArray.value.push({\n  ...txFromServer,\n  category: resolvedCategory\n})
+App -> App : toast.success('Neue Transaktion erfolgreich hinzugefügt!')
+@enduml
