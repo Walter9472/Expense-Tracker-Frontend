@@ -17,6 +17,7 @@
         <TransactionList
           id="transactions"
           :transactions="transactionArray"
+          :categories="categories"
           @transactionDeleted="handleTransactionDeleted"
         />
 
@@ -56,7 +57,7 @@ interface Transaction {
 }
 
 type TransactionPayload = Omit<Transaction, 'id' | 'category'> & {
-  categoryId: number
+  category: Category
 }
 
 interface NewCategoryPayload {
@@ -111,24 +112,33 @@ const total = computed(() => Number((income.value - expenses.value).toFixed(2)))
 // Neue Transaktion verarbeiten und an das Backend senden
 const handleTransactionSubmitted = async (transactionData: TransactionPayload) => {
   try {
-    const { categoryId, ...transactionWithoutCategory } = transactionData
+    const { category, ...transactionWithoutCategory } = transactionData
 
     // Daten an die API senden (POST)
     const response = await axios.post<Transaction>('http://localhost:8080/et/transactions', {
       ...transactionWithoutCategory,
-      category: { id: categoryId },
+      category: category?.id ? { id: category.id } : category,
     })
 
-    // Neue Transaktion zur Liste hinzufügen (sicherstellen, dass die Kategorie vollständig ist)
-    const newTx = (() => {
-      const tx = response.data
-      if (!tx.category || (tx.category && tx.category.name === undefined)) {
-        const cat = categories.value.find(c => c.id === categoryId)
-        return { ...tx, category: cat ?? tx.category ?? null }
+    // Neue Transaktion zur Liste hinzufügen und fehlende Kategoriedaten ergänzen
+    const txFromServer = response.data
+    const categoryFromServer = txFromServer.category
+    const resolvedCategory = (() => {
+      if (categoryFromServer && categoryFromServer.name) {
+        return categoryFromServer
       }
-      return tx
+
+      if (category?.id != null) {
+        return categories.value.find((c) => c.id === category.id) ?? category
+      }
+
+      return categoryFromServer ?? category ?? null
     })()
-    transactionArray.value.push(newTx)
+
+    transactionArray.value.push({
+      ...txFromServer,
+      category: resolvedCategory,
+    })
 
     // Erfolgsnachricht anzeigen
     toast.success('Neue Transaktion erfolgreich hinzugefügt!')
