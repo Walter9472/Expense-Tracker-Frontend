@@ -51,7 +51,7 @@ import { defineProps, computed } from 'vue'
 const emit = defineEmits(['transactionDeleted'])
 
 interface Category {
-  id: number
+  id: number | null
   name: string
   description?: string
   color?: string
@@ -84,7 +84,9 @@ const categories = computed(() => props.categories)
 const categoriesById = computed(() => {
   const map = new Map<number, Category>()
   categories.value.forEach((category) => {
-    map.set(category.id, category)
+    if (typeof category.id === 'number') {
+      map.set(category.id, category)
+    }
   })
   return map
 })
