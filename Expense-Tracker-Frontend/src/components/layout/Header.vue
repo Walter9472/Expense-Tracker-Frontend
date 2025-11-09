@@ -28,10 +28,14 @@
   </header>
 </template>
 <script setup lang="ts">
-import { useOktaAuth  } from '@okta/okta-vue';
-import { computed } from 'vue'
+import { useAuth } from '@okta/okta-vue';
+import { computed, inject, shallowRef } from 'vue'
+import type { ShallowRef } from 'vue'
+import type { AuthState } from '@okta/okta-auth-js'
 
-const { authState, oktaAuth } = useOktaAuth();
+const oktaAuth = useAuth();
+const authState = inject<ShallowRef<AuthState | null>>('okta.authState', shallowRef(null))
+
 const isAuthenticated = computed(() => !!authState.value?.isAuthenticated);
 
 const userEmail = computed(() => authState.value?.idToken?.claims?.email);
