@@ -18,17 +18,13 @@ apiClient.interceptors.request.use(
       return config
     }
 
-    if (config.headers) {
-      if (typeof config.headers.set === 'function') {
-        config.headers.set('Authorization', `Bearer ${accessToken}`)
-      } else {
-        config.headers.Authorization = `Bearer ${accessToken}`
-      }
-    } else {
-      config.headers = {
-        Authorization: `Bearer ${accessToken}`,
-      }
-    }
+    const headers =
+      config.headers instanceof AxiosHeaders
+        ? config.headers
+        : AxiosHeaders.from(config.headers ?? {})
+
+    headers.set('Authorization', `Bearer ${accessToken}`)
+    config.headers = headers
 
     return config
   },
