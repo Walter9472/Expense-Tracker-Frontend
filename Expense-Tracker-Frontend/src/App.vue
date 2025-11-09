@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, provide } from 'vue'
 import Header from './components/layout/Header.vue'
 import Balance from './components/dashboard/Balance.vue'
 import IncomeExpense from './components/dashboard/IncomeExpense.vue'
@@ -72,9 +72,34 @@ interface NewCategoryPayload {
 
 const transactionArray = ref<Transaction[]>([])
 const categories = ref<Category[]>([])
-const owner = ref<string | null>(
-  (import.meta.env.VITE_DEFAULT_OWNER as string | undefined)?.trim() || null,
-)
+
+const defaultOwnerFromEnv = (import.meta.env.VITE_DEFAULT_OWNER as string | undefined)?.trim() || null
+
+const readOwnerFromStorage = () => {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  const stored = window.localStorage.getItem('expense-tracker-owner')
+  return stored?.trim() || null
+}
+
+const ownerStorageKey = 'expense-tracker-owner'
+const owner = ref<string | null>(readOwnerFromStorage() || defaultOwnerFromEnv)
+
+const setOwner = (value: string | null) => {
+  owner.value = value?.trim() || null
+}
+
+const clearOwner = () => {
+  setOwner(null)
+}
+
+provide('ownerState', {
+  owner,
+  setOwner,
+  clearOwner,
+})
 
 const resolveOwnerFromAuth = async (authState?: AuthState | null) => {
   if (!isOktaConfigured || !oktaAuth) {
@@ -84,12 +109,13 @@ const resolveOwnerFromAuth = async (authState?: AuthState | null) => {
   const isAuthenticated = authState?.isAuthenticated ?? oktaAuth.authStateManager.getAuthState()?.isAuthenticated
 
   if (!isAuthenticated) {
+    clearOwner()
     return
   }
 
   try {
     const user = (await oktaAuth.getUser()) as UserClaims
-    owner.value = (user.email as string | undefined)?.trim() || (user.sub as string | undefined) || owner.value
+    setOwner((user.email as string | undefined)?.trim() || (user.sub as string | undefined) || owner.value)
   } catch (error) {
     console.warn('Unable to resolve owner from Okta user profile.', error)
   }
@@ -141,16 +167,49 @@ const subscribeToAuthChanges = () => {
   }
 
   authStateHandler = async (authState) => {
-    const previousOwner = owner.value
     await resolveOwnerFromAuth(authState)
-
-    if (owner.value && owner.value !== previousOwner) {
-      await Promise.all([loadTransactions(), loadCategories()])
-    }
   }
 
   oktaAuth.authStateManager.subscribe(authStateHandler)
 }
+
+const syncOwnerToStorage = (value: string | null) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  if (value) {
+    window.localStorage.setItem(ownerStorageKey, value)
+  } else {
+    window.localStorage.removeItem(ownerStorageKey)
+  }
+}
+
+watch(
+  owner,
+  async (newOwner, oldOwner) => {
+    if (newOwner === oldOwner) {
+      return
+    }
+
+    syncOwnerToStorage(newOwner)
+
+    if (!newOwner) {
+      transactionArray.value = []
+      categories.value = []
+      console.warn('No owner information is available. Configure Okta or set VITE_DEFAULT_OWNER.')
+      toast.info('Bitte melde dich an oder konfiguriere einen Standard-Besitzer, um Daten zu laden.')
+      return
+    }
+
+    try {
+      await Promise.all([loadTransactions(), loadCategories()])
+    } catch (error) {
+      console.error('Failed to refresh data after owner change.', error)
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(async () => {
   subscribeToAuthChanges()
@@ -158,14 +217,6 @@ onMounted(async () => {
   if (!owner.value) {
     await resolveOwnerFromAuth()
   }
-
-  if (!owner.value) {
-    console.warn('No owner information is available. Configure Okta or set VITE_DEFAULT_OWNER.')
-    toast.info('Bitte melde dich an oder konfiguriere einen Standard-Besitzer, um Daten zu laden.')
-    return
-  }
-
-  await Promise.all([loadTransactions(), loadCategories()])
 })
 
 onBeforeUnmount(() => {

@@ -18,7 +18,14 @@ const router = createRouter({
 })
 
 if (isOktaConfigured) {
-  router.beforeEach(navigationGuard)
+  router.beforeEach(async (to) => {
+    try {
+      return await navigationGuard(to)
+    } catch (error) {
+      console.error('Okta navigation guard failed; allowing navigation to continue.', error)
+      return true
+    }
+  })
 } else {
   console.info('Okta navigation guard disabled; routes accessible without authentication.')
 }
