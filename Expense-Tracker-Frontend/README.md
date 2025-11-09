@@ -47,13 +47,9 @@ npm run dev
    VITE_OKTA_CLIENT_ID=<your-client-id>
    ```
 
-    Okta integration is disabled by default to avoid network errors when the issuer information is not available. Enable it by set
-    ting `VITE_ENABLE_OKTA=true` and providing valid credentials. Save these values in `.env.local` (which is git ignored) or updat
-    e your local `.env` file.
-
-    The issuer must use HTTPS and point to a fully qualified Okta domain (for example, `https://dev-123456.okta.com/oauth2/default`).
-    Placeholder hostnames without a dot are treated as invalid and automatically disable the Okta SDK to prevent redirect loops and
-    failed network requests.
+   Okta integration is disabled by default to avoid network errors when the issuer information is not available. Enable it by set
+   ting `VITE_ENABLE_OKTA=true` and providing valid credentials. Save these values in `.env.local` (which is git ignored) or updat
+   e your local `.env` file.
 4. Restart the Vite development server so the new environment values are picked up by `import.meta.env`.
 
 ### Type-Check, Compile and Minify for Production

@@ -1,4 +1,4 @@
-import axios, { AxiosHeaders } from 'axios'
+import axios from 'axios'
 import { oktaAuth, isOktaConfigured } from '@/okta'
 
 const apiClient = axios.create({
