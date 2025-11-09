@@ -2,7 +2,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useTransactions } from "@/composables/useTransactions";
-import NewTransactionForm from "@/components/NewTransactionForm.vue";
 import TransactionList from "@/components/TransactionList.vue";
 import type { NewTransaction } from "@/services/api";
 
