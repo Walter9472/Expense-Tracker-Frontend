@@ -32,18 +32,39 @@ const normalizeIssuer = (issuer?: string): string | undefined => {
     return url.toString().replace(/\/+$/, '')
   } catch (error) {
     console.error('Invalid Okta issuer URL provided. Check VITE_OKTA_ISSUER.', error)
-    return issuer
+    return undefined
   }
 }
 
 const normalizedIssuer = normalizeIssuer(VITE_OKTA_ISSUER)
+
+const issuerHostLooksLikeClientId = (() => {
+  if (!normalizedIssuer || !VITE_OKTA_CLIENT_ID) {
+    return false
+  }
+
+  try {
+    const issuerHost = new URL(normalizedIssuer).hostname.replace(/\.okta\.com$/i, '')
+    const issuerHostWithoutDots = issuerHost.replace(/\./g, '').toLowerCase()
+    const clientIdNormalized = String(VITE_OKTA_CLIENT_ID).trim().toLowerCase()
+    return issuerHostWithoutDots === clientIdNormalized
+  } catch {
+    return false
+  }
+})()
+
+if (issuerHostLooksLikeClientId) {
+  console.error(
+    'The Okta issuer host matches the client ID. Check that VITE_OKTA_ISSUER is set to the issuer URL, not the client ID.',
+  )
+}
 
 if (VITE_OKTA_ISSUER && normalizedIssuer !== VITE_OKTA_ISSUER) {
   console.info('Normalized Okta issuer URL:', normalizedIssuer)
 }
 
 const enableOkta = String(VITE_ENABLE_OKTA).toLowerCase() === 'true'
-const hasRequiredConfig = Boolean(normalizedIssuer && VITE_OKTA_CLIENT_ID)
+const hasRequiredConfig = Boolean(normalizedIssuer && !issuerHostLooksLikeClientId && VITE_OKTA_CLIENT_ID)
 
 export const isOktaConfigured = enableOkta && hasRequiredConfig
 

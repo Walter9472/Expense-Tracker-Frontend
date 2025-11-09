@@ -52,6 +52,8 @@ npm run dev
 
    The frontend performs a light-weight normalization of `VITE_OKTA_ISSUER` to help with common misconfigurations (e.g. adding the `https://` prefix, appending `.okta.com`, or ensuring `/oauth2/default` is part of the path). Always prefer storing the full issuer URL from the Okta admin console to avoid surprises.
 
+   > **Hint:** The issuer must be the URL that ends with `/oauth2/default` (or your custom authorization server) copied from the Okta admin console. It is **not** the same as the client ID. If you accidentally paste the client ID into `VITE_OKTA_ISSUER`, the app disables Okta integration and logs a clear error message in the browser console.
+
    When Okta is not available during development you can provide `VITE_DEFAULT_OWNER` so that API requests include the required `owner` query parameter expected by the backend services.
 4. Restart the Vite development server so the new environment values are picked up by `import.meta.env`.
 
