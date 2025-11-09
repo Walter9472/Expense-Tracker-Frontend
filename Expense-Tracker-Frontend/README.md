@@ -42,11 +42,18 @@ npm run dev
 3. Copy the issuer and client ID from the Okta application and set them in a local environment file:
 
    ```env
+   VITE_ENABLE_OKTA=true
    VITE_OKTA_ISSUER=https://<your-domain>/oauth2/default
    VITE_OKTA_CLIENT_ID=<your-client-id>
    ```
 
-   Save these values in `.env.local` (which is git ignored) or update your local `.env` file.
+    Okta integration is disabled by default to avoid network errors when the issuer information is not available. Enable it by set
+    ting `VITE_ENABLE_OKTA=true` and providing valid credentials. Save these values in `.env.local` (which is git ignored) or updat
+    e your local `.env` file.
+
+    The issuer must use HTTPS and point to a fully qualified Okta domain (for example, `https://dev-123456.okta.com/oauth2/default`).
+    Placeholder hostnames without a dot are treated as invalid and automatically disable the Okta SDK to prevent redirect loops and
+    failed network requests.
 4. Restart the Vite development server so the new environment values are picked up by `import.meta.env`.
 
 ### Type-Check, Compile and Minify for Production
