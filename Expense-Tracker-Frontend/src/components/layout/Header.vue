@@ -41,7 +41,7 @@ const login = async () => {
 }
 
 const logout = async () => {
-  await oktaAuth.signOut();
+  await oktaAuth.signOut({ postLogoutRedirectUri: window.location.origin });
 }
 </script>
 

@@ -6,6 +6,7 @@ const oktaAuth = new OktaAuth({
   issuer: VITE_OKTA_ISSUER,
   clientId: VITE_OKTA_CLIENT_ID,
   redirectUri: window.location.origin + '/callback',
+  postLogoutRedirectUri: window.location.origin,
   scopes: ['openid', 'profile', 'email'],
 })
 
