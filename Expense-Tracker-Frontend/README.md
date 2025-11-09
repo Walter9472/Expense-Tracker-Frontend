@@ -35,6 +35,20 @@ npm install
 npm run dev
 ```
 
+### Okta configuration
+
+1. Create or open your single-page application in the Okta Admin Console.
+2. Update the **Login redirect URIs** to `http(s)://<your-app>/callback` and the **Logout redirect URIs** to `http(s)://<your-app>`.
+3. Copy the issuer and client ID from the Okta application and set them in a local environment file:
+
+   ```env
+   VITE_OKTA_ISSUER=https://<your-domain>/oauth2/default
+   VITE_OKTA_CLIENT_ID=<your-client-id>
+   ```
+
+   Save these values in `.env.local` (which is git ignored) or update your local `.env` file.
+4. Restart the Vite development server so the new environment values are picked up by `import.meta.env`.
+
 ### Type-Check, Compile and Minify for Production
 
 ```sh
