@@ -10,22 +10,13 @@
 </template>
 
 <script lang="ts">
-
-interface Transaction {
-    id: number
-    title: string
-    amount: number
-    date: string
-    type: "INCOME"|"EXPENSE"
-    description: string
-    category: string
-
-}
+import type { PropType } from 'vue'
+import type { Transaction } from '@/services/api'
 
 export default {
     props: {
         transactions: {
-            type: Array as () => Transaction[],
+            type: Array as PropType<Transaction[]>,
             required: true
         }
     }

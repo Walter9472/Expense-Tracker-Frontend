@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios, { type AxiosRequestHeaders } from 'axios'
+import { oktaAuth } from '@/plugins/okta'
 
 export interface NewTransaction{
   title: string;
@@ -14,15 +15,28 @@ export interface Transaction extends NewTransaction{
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE.API.BASE || "http://localhost:8080/et"
-});
+  baseURL: import.meta.env.VITE_API_BASE || 'http://localhost:8080/et',
+})
 
-export async function getTransactions(): Promise<Transaction[]>{
-  const { data } = await api.get("/transactions")
-  return data;
+api.interceptors.request.use(async (config) => {
+  const accessToken = await oktaAuth.getAccessToken()
+
+  if (accessToken) {
+    config.headers = {
+      ...(config.headers ?? {}),
+      Authorization: `Bearer ${accessToken}`,
+    } as AxiosRequestHeaders
+  }
+
+  return config
+})
+
+export async function getTransactions(): Promise<Transaction[]> {
+  const { data } = await api.get('/transactions')
+  return data
 }
 
-export async function createTransaction(input: NewTransaction): Promise<Transaction>{
-  const { data } = await api.post("/transaction", input);
-  return data;
+export async function createTransaction(input: NewTransaction): Promise<Transaction> {
+  const { data } = await api.post('/transaction', input)
+  return data
 }
