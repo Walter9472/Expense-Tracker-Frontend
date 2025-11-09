@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import Header from './components/layout/Header.vue'
 import Balance from './components/dashboard/Balance.vue'
 import IncomeExpense from './components/dashboard/IncomeExpense.vue'
@@ -36,6 +36,8 @@ import AddTransaction from './components/transactions/AddTransaction.vue'
 import apiClient from '@/api/client'
 
 import { useToast } from 'vue-toastification'
+import { oktaAuth, isOktaConfigured } from '@/okta'
+import type { AuthState, UserClaims } from '@okta/okta-auth-js'
 
 const toast = useToast()
 
@@ -54,6 +56,7 @@ interface Transaction {
   type: 'EINKOMMEN' | 'AUSGABEN'
   description?: string
   category?: Category | null
+  owner?: string
 }
 
 type TransactionPayload = Omit<Transaction, 'id' | 'category'> & {
@@ -64,32 +67,113 @@ interface NewCategoryPayload {
   name: string
   description?: string
   color?: string
+  owner?: string
 }
 
 const transactionArray = ref<Transaction[]>([])
 const categories = ref<Category[]>([])
+const owner = ref<string | null>(
+  (import.meta.env.VITE_DEFAULT_OWNER as string | undefined)?.trim() || null,
+)
 
-onMounted(async () => {
-  await Promise.all([loadTransactions(), loadCategories()])
-})
+const resolveOwnerFromAuth = async (authState?: AuthState | null) => {
+  if (!isOktaConfigured || !oktaAuth) {
+    return
+  }
+
+  const isAuthenticated = authState?.isAuthenticated ?? oktaAuth.authStateManager.getAuthState()?.isAuthenticated
+
+  if (!isAuthenticated) {
+    return
+  }
+
+  try {
+    const user = (await oktaAuth.getUser()) as UserClaims
+    owner.value = (user.email as string | undefined)?.trim() || (user.sub as string | undefined) || owner.value
+  } catch (error) {
+    console.warn('Unable to resolve owner from Okta user profile.', error)
+  }
+}
 
 const loadTransactions = async () => {
+  if (!owner.value) {
+    console.info('Skipping transaction fetch because no owner is configured.')
+    return
+  }
+
   try {
-    const response = await apiClient.get<Transaction[]>('/transactions')
+    const response = await apiClient.get<Transaction[]>('/transactions', {
+      params: { owner: owner.value },
+    })
     transactionArray.value = response.data
-  } catch {
+  } catch (error) {
+    console.error('Failed to load transactions.', error)
     toast.error('Fehler beim Laden der Transaktionen')
   }
 }
 
 const loadCategories = async () => {
+  if (!owner.value) {
+    console.info('Skipping category fetch because no owner is configured.')
+    return
+  }
+
   try {
-    const response = await apiClient.get<Category[]>('/categories')
+    const response = await apiClient.get<Category[]>('/categories', {
+      params: { owner: owner.value },
+    })
     categories.value = response.data
-  } catch {
+  } catch (error) {
+    console.error('Failed to load categories.', error)
     toast.error('Fehler beim Laden der Kategorien')
   }
 }
+
+const refreshData = async () => {
+  await loadTransactions()
+}
+
+let authStateHandler: ((authState: AuthState | null) => void) | null = null
+
+const subscribeToAuthChanges = () => {
+  if (!isOktaConfigured || !oktaAuth || authStateHandler) {
+    return
+  }
+
+  authStateHandler = async (authState) => {
+    const previousOwner = owner.value
+    await resolveOwnerFromAuth(authState)
+
+    if (owner.value && owner.value !== previousOwner) {
+      await Promise.all([loadTransactions(), loadCategories()])
+    }
+  }
+
+  oktaAuth.authStateManager.subscribe(authStateHandler)
+}
+
+onMounted(async () => {
+  subscribeToAuthChanges()
+
+  if (!owner.value) {
+    await resolveOwnerFromAuth()
+  }
+
+  if (!owner.value) {
+    console.warn('No owner information is available. Configure Okta or set VITE_DEFAULT_OWNER.')
+    toast.info('Bitte melde dich an oder konfiguriere einen Standard-Besitzer, um Daten zu laden.')
+    return
+  }
+
+  await Promise.all([loadTransactions(), loadCategories()])
+})
+
+onBeforeUnmount(() => {
+  if (authStateHandler && oktaAuth) {
+    oktaAuth.authStateManager.unsubscribe(authStateHandler)
+  }
+  authStateHandler = null
+})
 
 const income = computed(() => {
   return transactionArray.value
@@ -112,12 +196,18 @@ const total = computed(() => Number((income.value - expenses.value).toFixed(2)))
 // Neue Transaktion verarbeiten und an das Backend senden
 const handleTransactionSubmitted = async (transactionData: TransactionPayload) => {
   try {
+    if (!owner.value) {
+      toast.error('Bitte melde dich an, bevor du Transaktionen erstellst.')
+      return
+    }
+
     const { category, ...transactionWithoutCategory } = transactionData
 
     // Daten an die API senden (POST)
     const response = await apiClient.post<Transaction>('/transactions', {
       ...transactionWithoutCategory,
       category: category?.id ? { id: category.id } : category,
+      owner: owner.value,
     })
 
     // Neue Transaktion zur Liste hinzufügen und fehlende Kategoriedaten ergänzen
@@ -149,7 +239,15 @@ const handleTransactionSubmitted = async (transactionData: TransactionPayload) =
 
 const handleCreateCategory = async (newCategory: NewCategoryPayload) => {
   try {
-    const response = await apiClient.post<Category>('/categories', newCategory)
+    if (!owner.value) {
+      toast.error('Bitte melde dich an, bevor du Kategorien erstellst.')
+      throw new Error('OWNER_NOT_AVAILABLE')
+    }
+
+    const response = await apiClient.post<Category>('/categories', {
+      ...newCategory,
+      owner: owner.value,
+    })
     categories.value.push(response.data)
     toast.success('Kategorie wurde erstellt')
     return response.data
@@ -158,15 +256,6 @@ const handleCreateCategory = async (newCategory: NewCategoryPayload) => {
     throw error
   }
 }
-
-const refreshData = async () => {
-  try {
-    const response = await apiClient.get<Transaction[]>('/transactions');
-    transactionArray.value = response.data;
-  } catch {
-    toast.error('Fehler beim Laden der Transaktionsdaten.');
-  }
-};
 
 const handleTransactionDeleted = async (id: number) => {
   try {
