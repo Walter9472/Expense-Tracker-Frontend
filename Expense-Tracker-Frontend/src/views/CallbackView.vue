@@ -1,5 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { LoginCallback } from '@okta/okta-vue';
+</script>
 
-<template></template>
+<template>
+  <LoginCallback />
+</template>
 
 <style scoped></style>

@@ -5,6 +5,7 @@ import router from './router'
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
 import { oktaAuth } from './okta'
+import OktaVue from '@okta/okta-vue'
 
 
 const app = createApp(App)

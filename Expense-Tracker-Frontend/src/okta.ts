@@ -1,10 +1,9 @@
-let clientId = 'Gdj7QQoiJPodOpp7RYrQCFLpc7nWrGl1'
-let Domain = 'dev-xml7618hqrau0x4r.us.auth0.com'
 import { OktaAuth } from '@okta/okta-auth-js'
 
+const { VITE_OKTA_ISSUER, VITE_OKTA_CLIENT_ID } = import.meta.env;
 const oktaAuth = new OktaAuth({
-  issuer: 'https://{Gdj7QQoiJPodOpp7RYrQCFLpc7nWrGl1}/oauth2/default',
-  clientId: '{xml7618hqrau0x4r}',
+  issuer: VITE_OKTA_ISSUER,
+  clientId: VITE_OKTA_CLIENT_ID,
   redirectUri: window.location.origin + '/callback',
   scopes: ['openid', 'profile', 'email'],
 })
