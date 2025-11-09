@@ -24,18 +24,21 @@
           </div>
         </div>
         <div v-else class="auth-actions manual-auth">
+          <p class="manual-auth-hint">
+            Melde dich ohne Okta an, indem du deine E-Mail-Adresse angibst.
+          </p>
           <input
             v-model="manualOwner"
             type="text"
             name="owner"
-            placeholder="Besitzer (z. B. E-Mail)"
-            aria-label="Besitzer"
+            placeholder="E-Mail für Registrierung oder Anmeldung"
+            aria-label="E-Mail für Registrierung oder Anmeldung"
           />
           <button type="button" @click="submitManualOwner">
-            {{ manualOwnerSet ? 'Aktualisieren' : 'Speichern' }}
+            {{ manualOwnerSet ? 'Anmeldung aktualisieren' : 'Registrieren / Anmelden' }}
           </button>
           <button type="button" @click="clearManualOwner" :disabled="!manualOwnerSet">
-            Entfernen
+            {{ manualOwnerSet ? 'Abmelden' : 'Zurücksetzen' }}
           </button>
         </div>
       </nav>
@@ -50,14 +53,14 @@ import type { AuthState } from '@okta/okta-auth-js'
 import { isOktaConfigured } from '@/okta'
 import { useToast } from 'vue-toastification'
 
-const authAvailable = isOktaConfigured
+const authAvailable = ref(isOktaConfigured)
 
 const toast = useToast()
 
 let oktaAuth: ReturnType<typeof useAuth> | null = null
 let authState: ShallowRef<AuthState | null> = shallowRef(null)
 
-if (authAvailable) {
+if (authAvailable.value) {
   oktaAuth = useAuth()
   authState =
     inject<ShallowRef<AuthState | null>>('okta.authState', shallowRef(null)) ?? shallowRef(null)
@@ -71,12 +74,24 @@ interface OwnerStateContext {
 
 const ownerState = inject<OwnerStateContext | null>('ownerState', null)
 
-const isAuthenticated = computed(() => authAvailable && !!authState.value?.isAuthenticated)
+const isAuthenticated = computed(() => authAvailable.value && !!authState.value?.isAuthenticated)
 
-const userEmail = computed(() => (authAvailable ? authState.value?.idToken?.claims?.email : null))
+const userEmail = computed(() => (authAvailable.value ? authState.value?.idToken?.claims?.email : null))
+
+const enableManualAuthFallback = () => {
+  if (!authAvailable.value) {
+    return
+  }
+
+  authAvailable.value = false
+  oktaAuth = null
+  authState.value = null
+
+  toast.info('Okta ist aktuell nicht verfügbar. Nutze die lokale Anmeldung, um fortzufahren.')
+}
 
 const login = async () => {
-  if (!authAvailable || !oktaAuth) {
+  if (!authAvailable.value || !oktaAuth) {
     console.info('Okta authentication is disabled; skipping login redirect.')
     return
   }
@@ -86,11 +101,12 @@ const login = async () => {
   } catch (error) {
     console.error('Okta sign-in failed.', error)
     toast.error('Anmeldung nicht möglich. Bitte überprüfe die Okta-Konfiguration oder versuche es später erneut.')
+    enableManualAuthFallback()
   }
 }
 
 const logout = async () => {
-  if (!authAvailable || !oktaAuth) {
+  if (!authAvailable.value || !oktaAuth) {
     console.info('Okta authentication is disabled; skipping logout redirect.')
     ownerState?.clearOwner()
     toast.success('Abmeldung erfolgreich.')
@@ -132,8 +148,12 @@ const submitManualOwner = () => {
     return
   }
 
+  const wasRegistered = Boolean(ownerState.owner.value?.trim())
+
   ownerState.setOwner(normalized)
-  toast.success('Lokaler Besitzer wurde gesetzt.')
+  manualOwner.value = normalized
+
+  toast.success(wasRegistered ? 'Anmeldung aktualisiert.' : 'Registrierung/Anmeldung erfolgreich.')
 }
 
 const clearManualOwner = () => {
@@ -145,7 +165,7 @@ const clearManualOwner = () => {
 
   ownerState.clearOwner()
   manualOwner.value = ''
-  toast.success('Lokaler Besitzer wurde entfernt.')
+  toast.success('Du wurdest abgemeldet.')
 }
 
 </script>
@@ -184,6 +204,13 @@ const clearManualOwner = () => {
 
 .manual-auth {
   flex-wrap: wrap;
+}
+
+.manual-auth-hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
 }
 
 .manual-auth input {
