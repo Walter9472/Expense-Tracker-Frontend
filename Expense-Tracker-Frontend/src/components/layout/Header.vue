@@ -11,7 +11,7 @@
 
         <!-- Rechts im Header: Auth-Bereich -->
 
-        <div class="auth-actions">
+        <div v-if="authAvailable" class="auth-actions">
           <!-- Wenn NICHT eingeloggt -->
           <button v-if="!isAuthenticated" @click="login">Anmelden</button>
 
@@ -32,21 +32,41 @@ import { useAuth } from '@okta/okta-vue';
 import { computed, inject, shallowRef } from 'vue'
 import type { ShallowRef } from 'vue'
 import type { AuthState } from '@okta/okta-auth-js'
+import { isOktaConfigured } from '@/okta'
 
-const oktaAuth = useAuth();
-const authState = inject<ShallowRef<AuthState | null>>('okta.authState', shallowRef(null))
+const authAvailable = isOktaConfigured
 
-const isAuthenticated = computed(() => !!authState.value?.isAuthenticated);
+let oktaAuth: ReturnType<typeof useAuth> | null = null
+let authState: ShallowRef<AuthState | null> = shallowRef(null)
 
-const userEmail = computed(() => authState.value?.idToken?.claims?.email);
+if (authAvailable) {
+  oktaAuth = useAuth()
+  authState =
+    inject<ShallowRef<AuthState | null>>('okta.authState', shallowRef(null)) ?? shallowRef(null)
+}
+
+const isAuthenticated = computed(() => authAvailable && !!authState.value?.isAuthenticated)
+
+const userEmail = computed(() => (authAvailable ? authState.value?.idToken?.claims?.email : null))
 
 const login = async () => {
-  await oktaAuth.signInWithRedirect();
+  if (!authAvailable || !oktaAuth) {
+    console.info('Okta authentication is disabled; skipping login redirect.')
+    return
+  }
+
+  await oktaAuth.signInWithRedirect()
 }
 
 const logout = async () => {
-  await oktaAuth.signOut({ postLogoutRedirectUri: window.location.origin });
+  if (!authAvailable || !oktaAuth) {
+    console.info('Okta authentication is disabled; skipping logout redirect.')
+    return
+  }
+
+  await oktaAuth.signOut({ postLogoutRedirectUri: window.location.origin })
 }
+
 </script>
 
 <style scoped>

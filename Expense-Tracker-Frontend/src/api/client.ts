@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { oktaAuth } from '@/okta'
+import { oktaAuth, isOktaConfigured } from '@/okta'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/et',
@@ -7,11 +7,15 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   async (config) => {
+    if (!isOktaConfigured || !oktaAuth) {
+      return config
+    }
+
     const accessToken = await oktaAuth.getAccessToken()
 
     if (!accessToken) {
-      await oktaAuth.signInWithRedirect()
-      return Promise.reject(new Error('No access token available'))
+      console.warn('No Okta access token available; skipping Authorization header.')
+      return config
     }
 
     if (config.headers) {
