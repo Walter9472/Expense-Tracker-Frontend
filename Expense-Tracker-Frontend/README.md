@@ -45,11 +45,14 @@ npm run dev
    VITE_ENABLE_OKTA=true
    VITE_OKTA_ISSUER=https://<your-domain>/oauth2/default
    VITE_OKTA_CLIENT_ID=<your-client-id>
+   VITE_DEFAULT_OWNER=<optional-default-owner-for-local-dev>
    ```
 
-   Okta integration is disabled by default to avoid network errors when the issuer information is not available. Enable it by set
-   ting `VITE_ENABLE_OKTA=true` and providing valid credentials. Save these values in `.env.local` (which is git ignored) or updat
-   e your local `.env` file.
+   Okta integration is disabled by default to avoid network errors when the issuer information is not available. Enable it by setting `VITE_ENABLE_OKTA=true` and providing valid credentials. Save these values in `.env.local` (which is git ignored) or update your local `.env` file.
+
+   The frontend performs a light-weight normalization of `VITE_OKTA_ISSUER` to help with common misconfigurations (e.g. adding the `https://` prefix, appending `.okta.com`, or ensuring `/oauth2/default` is part of the path). Always prefer storing the full issuer URL from the Okta admin console to avoid surprises.
+
+   When Okta is not available during development you can provide `VITE_DEFAULT_OWNER` so that API requests include the required `owner` query parameter expected by the backend services.
 4. Restart the Vite development server so the new environment values are picked up by `import.meta.env`.
 
 ### Type-Check, Compile and Minify for Production
