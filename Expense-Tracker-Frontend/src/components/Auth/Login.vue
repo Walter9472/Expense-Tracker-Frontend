@@ -14,9 +14,10 @@
   const auth = useAuth()
 
   onMounted(() => {
-    const { issuer, clientId, redirectUri, scopes } = sampleConfig.oidc
+    const { issuer, clientId, redirectUri, scopes,baseUrl } = sampleConfig.oidc
 
     const widget = new OktaSignIn({
+      baseUrl,
       clientId,
       redirectUri,
       logo: '/logo.png',
@@ -25,11 +26,12 @@
           'primaryauth.title': 'Sign in to Expense Tracker'
         }
       },
-      authParams: {issuer,scopes},
+      authParams: { issuer,scopes },
+      features: { registration: true,},
     })
     widget.showSignInToGetTokens({
       el: '#okta-signin-container',
-    scopes
+    scopes,
     }).then(tokens => {
       // handle tokens here
       auth.handleLoginRedirect(tokens)
