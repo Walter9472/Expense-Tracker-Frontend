@@ -15,7 +15,7 @@ const auth = useAuth()
 let widget: OktaSignIn | null = null
 
 onMounted(() => {
-  const { issuer, clientId, redirectUri, scopes, baseUrl,pkce } = sampleConfig.oidc
+  const { issuer, clientId, redirectUri, scopes, baseUrl, pkce } = sampleConfig.oidc
 
   const oktaAuth = new OktaAuth({
     issuer,
