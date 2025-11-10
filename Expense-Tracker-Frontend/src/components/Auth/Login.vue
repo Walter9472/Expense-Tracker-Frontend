@@ -17,6 +17,16 @@ let widget: OktaSignIn | null = null
 onMounted(() => {
   const { issuer, clientId, redirectUri, scopes, baseUrl, pkce } = sampleConfig.oidc
 
+  if (!issuer || !clientId || !redirectUri || !baseUrl) {
+    console.error('Missing Okta configuration', {
+      issuer,
+      clientId,
+      redirectUri,
+      baseUrl,
+    })
+    return
+  }
+
   const oktaAuth = new OktaAuth({
     issuer,
     clientId,
@@ -38,7 +48,8 @@ onMounted(() => {
     },
     authParams: { issuer, scopes },
     authClient: oktaAuth,
-    registration: { enabled: true }  })
+    registration: { enabled: true },
+  })
   widget
     .showSignInToGetTokens({
       el: '#okta-signin-container',
