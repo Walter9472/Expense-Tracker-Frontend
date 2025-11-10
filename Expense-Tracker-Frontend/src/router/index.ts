@@ -12,6 +12,7 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/about',
@@ -28,11 +29,12 @@ const router = createRouter({
     },
     {
       path: '/login/callback',
-      component: () => LoginCallback,
+      component: LoginCallback,
     },
     {
       path: '/profile',
       component: Profile,
+      meta: { requiresAuth: true },
     }
   ],
 })

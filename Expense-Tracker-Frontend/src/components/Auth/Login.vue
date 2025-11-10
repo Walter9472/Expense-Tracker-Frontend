@@ -9,6 +9,9 @@
   import '@okta/okta-signin-widget/css/okta-sign-in.min.css'
   import sampleConfig from '@/config'
   import { onMounted } from 'vue'
+  import { useAuth } from '@okta/okta-vue'
+
+  const auth = useAuth()
 
   onMounted(() => {
     const { issuer, clientId, redirectUri, scopes } = sampleConfig.oidc
@@ -29,6 +32,7 @@
     scopes
     }).then(tokens => {
       // handle tokens here
+      auth.handleLoginRedirect(tokens)
       console.log('Login success', tokens)
     }).catch(err => { console.error('Login error', err)})
   })
