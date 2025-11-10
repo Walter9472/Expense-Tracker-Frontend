@@ -9,7 +9,7 @@ import '@okta/okta-signin-widget/css/okta-sign-in.min.css'
 import sampleConfig from '@/config'
 import { onBeforeUnmount, onMounted } from 'vue'
 import { useAuth } from '@okta/okta-vue'
-import OktaAuth from '@okta/okta-auth-js'
+import { OktaAuth } from '@okta/okta-auth-js'
 
 const auth = useAuth()
 let widget: OktaSignIn | null = null
@@ -25,8 +25,9 @@ onMounted(() => {
     pkce,
   })
 
-  const widget = new OktaSignIn({
+  widget = new OktaSignIn({
     baseUrl,
+    useInteractionCodeFlow: true,
     logo: '/logo.png',
     i18n: {
       en: {
@@ -34,7 +35,7 @@ onMounted(() => {
       },
     },
     authClient: oktaAuth,
-    features: { registration: true }  })
+    registration: { enabled: true }  })
   widget
     .showSignInToGetTokens({
       el: '#okta-signin-container',
