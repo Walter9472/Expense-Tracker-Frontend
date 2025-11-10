@@ -1,5 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import Login from '../components/Auth/Login.vue'
+import Profile from '../components/Auth/Profile.vue'
+import { LoginCallback, navigationGuard } from '@okta/okta-vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,7 +21,21 @@ const router = createRouter({
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
+    {
+      path: '/login',
+      name: 'login',
+      component: Login,
+    },
+    {
+      path: '/login/callback',
+      component: () => LoginCallback,
+    },
+    {
+      path: '/profile',
+      component: Profile,
+    }
   ],
 })
+router.beforeEach(navigationGuard)
 
 export default router
