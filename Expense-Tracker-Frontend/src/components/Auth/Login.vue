@@ -28,7 +28,7 @@ onMounted(() => {
       },
     },
     authParams: { issuer, scopes },
-    features: { registration: true },
+    registration: { enabled: true },
   })
   widget
     .showSignInToGetTokens({
