@@ -1,5 +1,5 @@
 <template>
-  <main class="container">
+  <div class="container">
     <section class="content">
       <aside class="summary">
         <Balance :total="total" />
@@ -22,7 +22,7 @@
 
       </section>
     </section>
-  </main>
+  </div>
 </template>
 <script setup lang="ts">
 
