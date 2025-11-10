@@ -27,6 +27,8 @@ onMounted(() => {
 
   widget = new OktaSignIn({
     baseUrl,
+    clientId,
+    redirectUri,
     useInteractionCodeFlow: true,
     logo: '/logo.png',
     i18n: {
@@ -34,6 +36,7 @@ onMounted(() => {
         'primaryauth.title': 'Sign in to Expense Tracker',
       },
     },
+    authParams: { issuer, scopes },
     authClient: oktaAuth,
     registration: { enabled: true }  })
   widget
