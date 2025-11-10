@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <HelloWorld msg="Expense Tracker Quickstart" />
     <section class="content">
       <aside class="summary">
         <Balance :total="total" />
@@ -32,6 +33,7 @@ import AddTransaction from '@/components/transactions/AddTransaction.vue'
 import IncomeExpense from '@/components/dashboard/IncomeExpense.vue'
 import TransactionList from '@/components/transactions/TransactionList.vue'
 import axios from 'axios'
+import HelloWorld from '@/components/HelloWorld.vue'
 
 import { useToast } from 'vue-toastification'
 
