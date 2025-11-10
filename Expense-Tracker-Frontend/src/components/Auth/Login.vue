@@ -9,27 +9,32 @@ import '@okta/okta-signin-widget/css/okta-sign-in.min.css'
 import sampleConfig from '@/config'
 import { onBeforeUnmount, onMounted } from 'vue'
 import { useAuth } from '@okta/okta-vue'
+import OktaAuth from '@okta/okta-auth-js'
 
 const auth = useAuth()
 let widget: OktaSignIn | null = null
 
 onMounted(() => {
-  const { issuer, clientId, redirectUri, scopes, baseUrl } = sampleConfig.oidc
+  const { issuer, clientId, redirectUri, scopes, baseUrl,pkce } = sampleConfig.oidc
+
+  const oktaAuth = new OktaAuth({
+    issuer,
+    clientId,
+    redirectUri,
+    scopes,
+    pkce,
+  })
 
   const widget = new OktaSignIn({
     baseUrl,
-    clientId,
-    redirectUri,
-    useInteractionCodeFlow: true,
     logo: '/logo.png',
     i18n: {
       en: {
         'primaryauth.title': 'Sign in to Expense Tracker',
       },
     },
-    authParams: { issuer, scopes },
-    registration: { enabled: true },
-  })
+    authClient: oktaAuth,
+    features: { registration: true }  })
   widget
     .showSignInToGetTokens({
       el: '#okta-signin-container',
