@@ -14,13 +14,6 @@ const app = createApp(App)
 
 app.use(router)
 app.use(Toast)
-app.use(OktaVue, {oktaAuth,
-    onAuthRequired: () => {
-      router.push('/login')
-    },
-    onAuthResume: () => {
-      router.push('/login')
-    },}
-)
+app.use(OktaVue, {oktaAuth})
 
 app.mount('#app')
