@@ -4,7 +4,7 @@
   </div>
 </template>
 <script setup lang="ts">
-//import '@okta/okta-signin-widget/dist/css/okta-sign-in.min.css'
+import '@okta/okta-signin-widget/css/okta-sign-in.min.css'
 import { oktaSignIn } from '@/main.ts'
 import { onMounted, onUnmounted, nextTick } from 'vue'
 

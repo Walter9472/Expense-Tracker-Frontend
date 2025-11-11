@@ -6,8 +6,17 @@
         <span>Expense Tracker</span>
       </div>
       <nav class="navbar-actions">
-        <button v-if="authState && authState.isAuthenticated" @click="logout">Logout</button>
-        <button v-else @click="login">Login</button>
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/about">About</RouterLink>
+        <RouterLink to="/login" v-if="!authenticated">
+          Login
+        </RouterLink> |
+        <RouterLink to="/profile" v-if="authenticated" >
+          Profile
+        </RouterLink> |
+        <a v-if="authenticated" v-on:click="logout()">
+          Logout
+        </a>
         <a href="#transactions">Transaktionen</a>
         <a href="#neue-transaktion">Neue Transaktion</a>
       </nav>
@@ -15,29 +24,33 @@
   </header>
 </template>
 <script setup lang="ts">
-import {RouterLink} from 'vue-router'
-import { inject, ShallowRef } from 'vue'
+import { RouterLink, RouterView, useRoute} from 'vue-router'
+import { watch ,onMounted, ref} from 'vue'
 import { useAuth } from '@okta/okta-vue'
 import type { AuthState } from '@okta/okta-auth-js'
 
-defineProps({
-  msg: {
-    type: String,
-    required: true
-  }
-})
-// OktaAuth Instanz (das frühere this.$auth)
+
 const $auth = useAuth()
+const $route = useRoute()
+const authenticated = ref(false)
 
-// reaktiver Auth-Status, den OktaVue injiziert
-const authState = inject<ShallowRef<AuthState>>('okta.authState')
-
-const login = async () => {
-  await $auth.signInWithRedirect({ originalUri: '/' })
-}
-const logout = async () => {
+async function logout() {
   await $auth.signOut()
 }
+
+async function isAuthenticated () {
+  authenticated.value = await $auth.isAuthenticated()
+}
+
+watch(() => $route.path, async () => {
+  await isAuthenticated()
+})
+
+onMounted(async () => {
+  await isAuthenticated()
+  $auth.authStateManager.subscribe(isAuthenticated)
+})
+
 </script>
 
 <style scoped>
