@@ -20,7 +20,6 @@
           :categories="categories"
           @transactionDeleted="handleTransactionDeleted"
         />
-
       </section>
     </section>
   </main>
@@ -161,26 +160,26 @@ const handleCreateCategory = async (newCategory: NewCategoryPayload) => {
 
 const refreshData = async () => {
   try {
-    const response = await axios.get<Transaction[]>("http://localhost:8080/et/transactions");
-    transactionArray.value = response.data;
+    const response = await axios.get<Transaction[]>('http://localhost:8080/et/transactions')
+    transactionArray.value = response.data
   } catch {
-    toast.error('Fehler beim Laden der Transaktionsdaten.');
+    toast.error('Fehler beim Laden der Transaktionsdaten.')
   }
-};
+}
 
 const handleTransactionDeleted = async (id: number) => {
   try {
     // DELETE-Request an das Backend
-    await axios.delete(`http://localhost:8080/et/transaction/${id}`);
+    await axios.delete(`http://localhost:8080/et/transaction/${id}`)
 
     // Erfolgsmeldung anzeigen
-    toast.success('Die Transaktion wurde erfolgreich gelöscht.');
+    toast.success('Die Transaktion wurde erfolgreich gelöscht.')
 
     // Aktualisiere die Transaktionsliste
-    await refreshData();
+    await refreshData()
   } catch {
     // Fehlermeldung anzeigen
-    toast.error('Fehler beim Löschen der Transaktion.');
+    toast.error('Fehler beim Löschen der Transaktion.')
   }
-};
+}
 </script>
