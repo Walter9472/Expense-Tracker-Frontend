@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import Login from '../components/Auth/Login.vue'
-import ProfileView from '../views/ProfileView.vue'
+import Login from '../views/Login.vue'
+import Profile from '../views/Profile.vue'
 import { LoginCallback, navigationGuard } from '@okta/okta-vue'
 
 
@@ -12,7 +12,7 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
-      //meta: { requiresAuth: true },
+      meta: { requiresAuth: true },
     },
     {
       path: '/about',
@@ -33,7 +33,7 @@ const router = createRouter({
     },
     {
       path: '/profile',
-      component: ProfileView,
+      component: Profile,
       meta: { requiresAuth: true },
     }
   ],
