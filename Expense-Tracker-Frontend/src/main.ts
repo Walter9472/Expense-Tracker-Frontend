@@ -11,26 +11,38 @@ import OktaSignIn from '@okta/okta-signin-widget'
 
 const app = createApp(App)
 
+const oktaDomain = 'https://integrator-7513753.okta.com'
+const oktaClientId = '0oaxbct9tqITDrep1697'
+const oktaRedirectUri = `${window.location.origin}/login/callback`
 
 const oktaSignIn = new OktaSignIn({
-  baseUrl: 'https://integrator-7513753.okta.com',
-  clientId: '0oaxbct9tqITDrep1697',
-  redirectUri: 'http://localhost:5173/login/callback',
+  baseUrl: oktaDomain,
+  clientId: oktaClientId,
+  redirectUri: oktaRedirectUri,
   authParams: {
     pkce: true,
-    issuer: 'https://integrator-7513753.okta.com/oauth2/default',
+    issuer: `${oktaDomain}/oauth2/default`,
     display: 'page',
     scopes: ['openid', 'profile', 'email']
   },
-  features: { registration: true },
+  features: {
+    registration: true,
+  },
+  registration: {
+    click: () => {
+      console.info('[okta] Redirecting to hosted registration page')
+      window.location.assign(`${oktaDomain}/signin/register?fromURI=${encodeURIComponent('/')}`)
+      return false
+    },
+  },
   useInteractionCodeFlow: false,
   useClassicEngine: true,
 })
 
 const oktaAuth = new OktaAuth({
-  issuer: 'https://integrator-7513753.okta.com/oauth2/default',
-  clientId: '0oaxbct9tqITDrep1697',
-  redirectUri: window.location.origin + '/login/callback',
+  issuer: `${oktaDomain}/oauth2/default`,
+  clientId: oktaClientId,
+  redirectUri: oktaRedirectUri,
   scopes: ['openid', 'profile', 'email']
 })
 app.use(router)
