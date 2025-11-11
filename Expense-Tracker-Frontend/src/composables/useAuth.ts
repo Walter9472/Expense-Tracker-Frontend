@@ -5,7 +5,7 @@ import {
   logout as authLogout,
   isAuthenticated as checkAuth,
   getToken
-} from '../services/authService'
+} from '../service/authService.ts'
 import router from '../router'
 
 const isAuthenticated = ref(checkAuth())

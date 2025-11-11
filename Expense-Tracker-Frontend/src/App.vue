@@ -32,11 +32,13 @@ import Balance from './components/dashboard/Balance.vue'
 import IncomeExpense from './components/dashboard/IncomeExpense.vue'
 import TransactionList from './components/transactions/TransactionList.vue'
 import AddTransaction from './components/transactions/AddTransaction.vue'
-import axios from 'axios'
-
+import api from './service/api.ts'
 import { useToast } from 'vue-toastification'
+import { useAuth } from '@/composables/useAuth.ts'
 
 const toast = useToast()
+const { checkAuthStatus } = useAuth()
+
 
 interface Category {
   id: number | null
@@ -72,9 +74,14 @@ onMounted(async () => {
   await Promise.all([loadTransactions(), loadCategories()])
 })
 
+onMounted(async () => {
+  checkAuthStatus()
+})
+
+
 const loadTransactions = async () => {
   try {
-    const response = await axios.get<Transaction[]>('http://localhost:8080/et/transactions')
+    const response = await api.get<Transaction[]>('/et/transactions') // statt axios.get
     transactionArray.value = response.data
   } catch {
     toast.error('Fehler beim Laden der Transaktionen')
@@ -83,7 +90,7 @@ const loadTransactions = async () => {
 
 const loadCategories = async () => {
   try {
-    const response = await axios.get<Category[]>('http://localhost:8080/et/categories')
+    const response = await api.get<Category[]>('/et/categories')
     categories.value = response.data
   } catch {
     toast.error('Fehler beim Laden der Kategorien')
@@ -114,7 +121,7 @@ const handleTransactionSubmitted = async (transactionData: TransactionPayload) =
     const { category, ...transactionWithoutCategory } = transactionData
 
     // Daten an die API senden (POST)
-    const response = await axios.post<Transaction>('http://localhost:8080/et/transactions', {
+    const response = await api.post<Transaction>('/et/transactions', {
       ...transactionWithoutCategory,
       category: category?.id ? { id: category.id } : category,
     })
@@ -148,7 +155,7 @@ const handleTransactionSubmitted = async (transactionData: TransactionPayload) =
 
 const handleCreateCategory = async (newCategory: NewCategoryPayload) => {
   try {
-    const response = await axios.post<Category>('http://localhost:8080/et/categories', newCategory)
+    const response = await api.post<Category>('/et/categories', newCategory)
     categories.value.push(response.data)
     toast.success('Kategorie wurde erstellt')
     return response.data
@@ -160,7 +167,7 @@ const handleCreateCategory = async (newCategory: NewCategoryPayload) => {
 
 const refreshData = async () => {
   try {
-    const response = await axios.get<Transaction[]>('http://localhost:8080/et/transactions')
+    const response = await api.get<Transaction[]>('/et/transactions')
     transactionArray.value = response.data
   } catch {
     toast.error('Fehler beim Laden der Transaktionsdaten.')
@@ -170,7 +177,7 @@ const refreshData = async () => {
 const handleTransactionDeleted = async (id: number) => {
   try {
     // DELETE-Request an das Backend
-    await axios.delete(`http://localhost:8080/et/transaction/${id}`)
+    await api.delete(`/et/transaction/${id}`)
 
     // Erfolgsmeldung anzeigen
     toast.success('Die Transaktion wurde erfolgreich gelöscht.')
