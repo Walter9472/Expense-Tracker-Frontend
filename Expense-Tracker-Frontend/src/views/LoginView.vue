@@ -56,7 +56,7 @@ const handleLogin = async () => {
     await login(username.value, password.value)
     toast.success('Erfolgreich angemeldet!')
   }catch (err: any) {
-    toast.error(err.value || 'Login fehlgeschlagen')
+    toast.error(error.value || 'Login fehlgeschlagen')
   }
 }
 </script>

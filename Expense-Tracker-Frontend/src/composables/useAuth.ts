@@ -5,7 +5,7 @@ import {
   logout as authLogout,
   isAuthenticated as checkAuth,
   getToken
-} from '../service/authService.ts'
+} from '../service/authService'
 import router from '../router'
 
 const isAuthenticated = ref(checkAuth())
@@ -34,8 +34,10 @@ export function useAuth() {
 
     try {
       await authRegister({ username, email, password })
+      // Warten bis Token gespeichert ist
+      await new Promise(resolve => setTimeout(resolve, 100))  // ← Kurze Verzögerung
       // Nach Registrierung zum Login weiterleiten
-      isAuthenticated.value = true
+      isAuthenticated.value = false
       router.push('/login')
     }catch (err: any) {
       error.value = err.message || 'Registrierung fehlgeschlagen'

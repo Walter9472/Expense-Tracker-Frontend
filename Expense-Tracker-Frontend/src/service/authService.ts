@@ -59,17 +59,17 @@ export function isTokenExpiringSoon(minutesBeforeExpiry: number = 5): boolean {
 
 //Login Funktion
 export async function login(credentials: LoginCredentials): Promise<string> {
-  try{
-    const response = await axios.post(`${API_BASE_URL}/login`,credentials);
-    const token = response.data;
+  try {
+    const response = await axios.post(`${API_BASE_URL}/login`, credentials)
+    const token = response.data
 
-    saveToken(token);
-    return token;
-  }catch(error: any){
-    if (error.reponse?.status === 401) {
-      throw new Error('Ungülteger Benutzername oder Passwort');
+    saveToken(token)
+    return token
+  } catch (error: any) {
+    if (error.response?.status === 401) {  // ← reponse → response korrigiert
+      throw new Error('Ungültiger Benutzername oder Passwort')
     }
-    throw new Error('Login Fehlgeschlagen');
+    throw new Error('Login Fehlgeschlagen')
   }
 }
 // Register Funktion

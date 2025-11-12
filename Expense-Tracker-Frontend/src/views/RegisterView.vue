@@ -63,16 +63,16 @@ import { useToast } from 'vue-toastification'
 const { register, isLoading, error } = useAuth()
 const toast = useToast()
 
-const email = ref('')
 const username = ref('')
+const email = ref('')
 const password = ref('')
 
 const handleRegister = async () => {
   try {
-    await register(email.value, username.value, password.value)
+    await register(username.value, email.value, password.value)
     toast.success('Registrierung erfolgreich! Bitte melden Sie sich an.')
   }catch (err: any) {
-    toast.error(err.value || 'Registrierung fehlgeschlagen')
+    toast.error(error.value || 'Registrierung fehlgeschlagen')
   }
 }
 

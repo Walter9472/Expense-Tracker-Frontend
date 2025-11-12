@@ -15,6 +15,7 @@ onMounted( () => {
 
 <template>
   <main>
-    <TheWelcome />
+    <!-- HomeView wird nicht direkt verwendet, da App.vue die Hauptkomponente ist -->
+    <!-- Falls du eine separate HomeView brauchst, kannst du hier Content hinzufügen -->
   </main>
 </template>

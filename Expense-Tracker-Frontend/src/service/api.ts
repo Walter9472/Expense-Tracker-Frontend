@@ -1,6 +1,6 @@
 
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios'
-import { getToken, isTokenExpired, isTokenExpiringSoon, login, removeToken } from './authService'
+import axios, { type AxiosInstance, type InternalAxiosRequestConfig, type AxiosError } from 'axios'
+import { getToken, isTokenExpired, isTokenExpiringSoon, removeToken } from './authService'
 import router from '../router'
 
 
@@ -20,7 +20,11 @@ api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = getToken();
 
-    if (!token && !isTokenExpired()) {
+    if (token && !isTokenExpired()) {
+      // Sicherstellen, dass headers existiert
+      if (!config.headers) {
+        config.headers = {} as any
+      }
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -107,9 +111,7 @@ async function refreshTokenSilently() {
   // Aktuell können wir nur prüfen, ob Token noch gültig ist
   // Wenn nicht, wird der User beim nächsten Request zum Login weitergeleitet
 
-  // Alternative: Du könntest hier einen Refresh-Endpoint aufrufen, wenn vorhanden
-  // const response = await axios.post(`${API_BASE_URL}/refresh`, { token: getToken() })
-  // saveToken(response.data.token)
+
 }
 
 export default api
