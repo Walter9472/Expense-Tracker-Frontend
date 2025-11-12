@@ -138,8 +138,12 @@ const handleTransactionSubmitted = async (transactionData: TransactionPayload) =
     })
 
     toast.success('Neue Transaktion erfolgreich hinzugefügt!')
-  } catch {
-    toast.error('Fehler beim Speichern der neuen Transaktion')
+  } catch (error: any) {
+    if (error.response?.status === 403) {
+      toast.error('Keine Berechtigung für diese Transaktion.')
+    } else {
+      toast.error('Fehler beim erstellen der Transaktion.')
+    }
   }
 }
 
@@ -159,8 +163,13 @@ const refreshData = async () => {
   try {
     const response = await api.get<Transaction[]>('/et/transactions')
     transactionArray.value = response.data
-  } catch {
-    toast.error('Fehler beim Laden der Transaktionsdaten.')
+  }  catch (error: any) {
+    if (error.response?.status === 403) {
+      toast.error('Keine Berechtigung für diese Kategorie.')
+    } else {
+      toast.error('Fehler beim Erstellen der Kategorie')
+    }
+    throw error
   }
 }
 
@@ -169,8 +178,12 @@ const handleTransactionDeleted = async (id: number) => {
     await api.delete(`/et/transaction/${id}`)
     toast.success('Die Transaktion wurde erfolgreich gelöscht.')
     await refreshData()
-  } catch {
-    toast.error('Fehler beim Löschen der Transaktion.')
+  } catch (error: any) {
+    if (error.response?.status === 403) {
+      toast.error('Keine Berechtigung für diese Transaktion.')
+    } else {
+      toast.error('Fehler beim Löschen der Transaktion.')
+    }
   }
 }
 </script>

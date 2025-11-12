@@ -25,7 +25,12 @@ api.interceptors.request.use(
       if (!config.headers) {
         config.headers = {} as any
       }
-      config.headers.Authorization = `Bearer ${token}`;
+      const headers = config.headers as any
+      if (typeof headers.set === 'function') {
+        headers.set('Authorization', `Bearer ${token}`)
+      } else {
+        headers['Authorization'] = `Bearer ${token}`
+      }
     }
     return config;
   },
