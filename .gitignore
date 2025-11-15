@@ -7,7 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-Expense-Tracker-Frontend/node_modules
+node_modules
 .DS_Store
 dist
 dist-ssr
@@ -28,4 +28,3 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-node_modules
