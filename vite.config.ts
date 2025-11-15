@@ -12,7 +12,7 @@ export default defineConfig(() => {
 
   if (process.env.NODE_ENV === 'development') {
     const { default: vueDevTools } = require('vite-plugin-vue-devtools')
-    plugins.push(vueDevTools() as PluginOption)
+    plugins.push(vueDevTools as PluginOption)
   }
 
   return {
