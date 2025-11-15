@@ -21,10 +21,11 @@ export function useAuth() {
       await authLogin({ username, password })
       isAuthenticated.value = true
       router.push('/')
-    } catch (err) {
-      error.value = err.message || 'Login fehlgeschlagen'
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Login fehlgeschlagen'
+      error.value = message
       throw err
-    }finally {
+    } finally {
       isLoading.value = false
     }
   }
@@ -39,10 +40,11 @@ export function useAuth() {
       // Nach Registrierung zum Login weiterleiten
       isAuthenticated.value = false
       router.push('/login')
-    }catch (err: any) {
-      error.value = err.message || 'Registrierung fehlgeschlagen'
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Registrierung fehlgeschlagen'
+      error.value = message
       throw err
-    }finally {
+    } finally {
       isLoading.value = false
     }
   }
