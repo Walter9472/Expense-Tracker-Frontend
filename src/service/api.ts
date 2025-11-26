@@ -4,8 +4,7 @@ import { getToken, isTokenExpired, isTokenExpiringSoon, removeToken } from './au
 import router from '../router'
 
 
-const API_URL_BASE = import.meta.env.VITE_API_BASE_URL
-  // || 'http://localhost:8080'
+const API_URL_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
 // Axios Instance erstellen
 const api: AxiosInstance = axios.create({
