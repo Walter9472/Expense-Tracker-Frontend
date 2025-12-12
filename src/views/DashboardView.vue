@@ -4,6 +4,9 @@
       <aside class="summary">
         <Balance :total="total" />
         <IncomeExpense :income="income" :expenses="expenses" />
+        <button @click="downloadCsv" class="export-btn">
+          📥 Als CSV exportieren
+        </button>
       </aside>
 
       <section class="dashboard">
@@ -13,6 +16,7 @@
           :create-category="handleCreateCategory"
           @transactionSubmitted="handleTransactionSubmitted"
         />
+
         <TransactionList
           id="transactions"
           :transactions="transactionArray"
@@ -33,6 +37,7 @@ import AddTransaction from '../components/transactions/AddTransaction.vue'
 import api from '../service/api'
 import { useToast } from 'vue-toastification'
 import { useAuth } from '../composables/useAuth'
+import {getToken} from "@/service/authService.ts";
 
 const toast = useToast()
 const { checkAuthStatus } = useAuth()
@@ -72,6 +77,41 @@ onMounted(async () => {
     await Promise.all([loadTransactions(), loadCategories()])
   }
 })
+
+const downloadCsv = async () => {
+  try {
+    const token = getToken()
+    console.log('Token:', token) // Debug: prüfen ob Token vorhanden ist
+    const response = await api.get('/et/export/csv',{
+      responseType: 'blob', // Wichtig für Datei-Download!
+      headers: {
+        'Authorization': `Bearer ${token}`  // Explizit hinzufügen
+      }
+    })
+
+    // Blob aus Response erstellen
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8'
+    })
+
+    //Download link erstellen und triggern
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `transactions_${new Date().toISOString().split('T')[0]}.csv` )
+    document.body.appendChild(link)
+    link.click()
+
+    // Cleanup
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    toast.success('CSV erfolgreich heruntergeladen')
+
+  }catch (error){
+    toast.error('Fehler beim Exportieren der Daten')
+    console.error('CSV Export error:', error)
+  }
+}
+
 
 const loadTransactions = async () => {
   try {

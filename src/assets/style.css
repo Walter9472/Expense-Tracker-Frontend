@@ -818,3 +818,23 @@ body.theme-dark .summary .stat {
 body.theme-dark .table-header {
   background: rgba(249, 250, 251, 0.08);
 }
+.export-btn {
+  width: 100%;
+  padding: 12px 20px;
+  margin-top: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.export-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.export-btn:active {
+  transform: translateY(0);
+}
