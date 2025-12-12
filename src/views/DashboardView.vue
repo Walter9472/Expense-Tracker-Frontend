@@ -7,7 +7,13 @@
         <button @click="downloadCsv" class="export-btn">
           📥 Als CSV exportieren
         </button>
-        <ExpenseChart :transactions="transactionArray" />
+        <div class="charts-grid">
+          <ExpenseChart :transactions="transactionArray" />
+          <IncomePieChart :transactions="transactionArray" />
+        </div>
+        <div class="trend-chart-container">
+          <FinancialTrendChart :transactions="transactionArray" />
+        </div>
       </aside>
 
       <section class="dashboard">
@@ -40,6 +46,9 @@ import { useToast } from 'vue-toastification'
 import { useAuth } from '../composables/useAuth'
 import {getToken} from "@/service/authService.ts";
 import ExpenseChart from '../components/dashboard/ExpenseChart.vue'
+import IncomePieChart from '../components/dashboard/IncomePieChart.vue'
+import FinancialTrendChart from '../components/dashboard/FinancialTrendChart.vue'
+
 
 
 const toast = useToast()
@@ -230,3 +239,78 @@ const handleTransactionDeleted = async (id: number) => {
   }
 }
 </script>
+
+<style scoped>
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.content {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+/* Sidebar Styling */
+.summary {
+  flex: 0 0 350px; /* Fixed width for sidebar */
+  background-color: var(--card-bg, #1f2937); /* Fallback dark bg */
+  padding: 1.5rem;
+  border-radius: 1rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Main Content Styling */
+.dashboard {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Buttons */
+.export-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  width: 100%;
+}
+.export-btn:hover {
+  opacity: 0.9;
+}
+
+/* Chart Grids */
+.charts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.trend-chart-container {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .content {
+    flex-direction: column;
+  }
+  
+  .summary {
+    width: 100%;
+    flex: none;
+  }
+}
+</style>
