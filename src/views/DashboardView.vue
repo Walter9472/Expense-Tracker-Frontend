@@ -7,6 +7,7 @@
         <button @click="downloadCsv" class="export-btn">
           📥 Als CSV exportieren
         </button>
+        <ExpenseChart :transactions="transactionArray" />
       </aside>
 
       <section class="dashboard">
@@ -38,6 +39,8 @@ import api from '../service/api'
 import { useToast } from 'vue-toastification'
 import { useAuth } from '../composables/useAuth'
 import {getToken} from "@/service/authService.ts";
+import ExpenseChart from '../components/dashboard/ExpenseChart.vue'
+
 
 const toast = useToast()
 const { checkAuthStatus } = useAuth()
