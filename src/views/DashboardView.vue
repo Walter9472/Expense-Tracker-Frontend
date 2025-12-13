@@ -49,7 +49,7 @@
             <div class="filter-row">
               <select v-model="selectedCategory" class="filter-select">
                 <option :value="null">Alle Kategorien</option>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                <option v-for="cat in categories" :key="cat.id!" :value="cat.id">
                   {{ cat.name }}
                 </option>
               </select>
@@ -438,7 +438,7 @@ const handleTransactionDeleted = async (id: number) => {
 }
 .filter-input, .filter-select {
   padding: 0.5rem;
-  background: rgba(255,, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.5rem;
   color: black;
