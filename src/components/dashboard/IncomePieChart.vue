@@ -1,6 +1,5 @@
 <template>
   <div class="chart-container">
-    <h3>Einnahmen und ausgaben</h3>
     <div class="chart-wrapper" v-if="hasData">
       <Pie :key="chartKey" :data="chartData" :options="chartOptions" />
     </div>

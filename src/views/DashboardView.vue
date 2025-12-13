@@ -1,36 +1,61 @@
 <template>
-  <main class="container">
-    <section class="content">
-      <aside class="summary">
+  <main class="dashboard-container">
+    <!-- Main Dashboard Area: Data First -->
+    <section class="main-dashboard">
+      <!-- Stats Row -->
+      <div class="stats-overview">
         <Balance :total="total" />
         <IncomeExpense :income="income" :expenses="expenses" />
-        <button @click="downloadCsv" class="export-btn">
-          📥 Als CSV exportieren
-        </button>
-        <div class="charts-grid">
-          <ExpenseChart :transactions="transactionArray" />
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-grid-row">
+        <div class="chart-card">
+          <h3>Einnahmen vs. Ausgaben</h3>
           <IncomePieChart :transactions="transactionArray" />
         </div>
-        <div class="trend-chart-container">
-          <FinancialTrendChart :transactions="transactionArray" />
+        <div class="chart-card">
+          <h3>Ausgaben nach Kategorie</h3>
+          <ExpenseChart :transactions="transactionArray" />
         </div>
-      </aside>
+      </div>
 
-      <section class="dashboard">
-        <AddTransaction
-          id="neue-transaktion"
-          :categories="categories"
-          :create-category="handleCreateCategory"
-          @transactionSubmitted="handleTransactionSubmitted"
-        />
+      <!-- Trend Chart -->
+      <div class="trend-chart-card">
+        <h3>Finanzverlauf</h3>
+        <FinancialTrendChart :transactions="transactionArray" />
+      </div>
+    </section>
 
-        <TransactionList
-          id="transactions"
-          :transactions="transactionArray"
-          :categories="categories"
-          @transactionDeleted="handleTransactionDeleted"
-        />
-      </section>
+    <!-- Actions Area: Tools & Interaction -->
+    <section class="actions-area">
+      <button @click="downloadCsv" class="export-btn">
+        📥 Als CSV exportieren
+      </button>
+
+      <!-- Side-by-Side: List Left, Add Form Right -->
+      <div class="tools-grid">
+        <div class="tool-card list-card">
+          <h3>Letzte Buchungen</h3>
+          <TransactionList
+            id="transactions"
+            :transactions="transactionArray"
+            :categories="categories"
+            @transactionDeleted="handleTransactionDeleted"
+            class="transaction-list-scrollable"
+          />
+        </div>
+
+        <div class="tool-card form-card">
+          <h3>Neue Buchung</h3>
+          <AddTransaction
+            id="neue-transaktion"
+            :categories="categories"
+            :create-category="handleCreateCategory"
+            @transactionSubmitted="handleTransactionSubmitted"
+          />
+        </div>
+      </div>
     </section>
   </main>
 </template>
@@ -48,8 +73,6 @@ import {getToken} from "@/service/authService.ts";
 import ExpenseChart from '../components/dashboard/ExpenseChart.vue'
 import IncomePieChart from '../components/dashboard/IncomePieChart.vue'
 import FinancialTrendChart from '../components/dashboard/FinancialTrendChart.vue'
-
-
 
 const toast = useToast()
 const { checkAuthStatus } = useAuth()
@@ -93,37 +116,25 @@ onMounted(async () => {
 const downloadCsv = async () => {
   try {
     const token = getToken()
-    console.log('Token:', token) // Debug: prüfen ob Token vorhanden ist
     const response = await api.get('/et/export/csv',{
-      responseType: 'blob', // Wichtig für Datei-Download!
-      headers: {
-        'Authorization': `Bearer ${token}`  // Explizit hinzufügen
-      }
+      responseType: 'blob',
+      headers: { 'Authorization': `Bearer ${token}` }
     })
-
-    // Blob aus Response erstellen
-    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8'
-    })
-
-    //Download link erstellen und triggern
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8' })
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
     link.setAttribute('download', `transactions_${new Date().toISOString().split('T')[0]}.csv` )
     document.body.appendChild(link)
     link.click()
-
-    // Cleanup
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
     toast.success('CSV erfolgreich heruntergeladen')
-
   }catch (error){
     toast.error('Fehler beim Exportieren der Daten')
     console.error('CSV Export error:', error)
   }
 }
-
 
 const loadTransactions = async () => {
   try {
@@ -146,17 +157,13 @@ const loadCategories = async () => {
 const income = computed(() => {
   return transactionArray.value
     .filter((transaction) => transaction.type == 'EINKOMMEN')
-    .reduce((acc, transaction) => {
-      return acc + transaction.amount
-    }, 0)
+    .reduce((acc, transaction) => acc + transaction.amount, 0)
 })
 
 const expenses = computed(() => {
   return transactionArray.value
     .filter((transaction) => transaction.type == 'AUSGABEN')
-    .reduce((acc, transaction) => {
-      return acc + transaction.amount
-    }, 0)
+    .reduce((acc, transaction) => acc + transaction.amount, 0)
 })
 
 const total = computed(() => Number((income.value - expenses.value).toFixed(2)))
@@ -164,38 +171,22 @@ const total = computed(() => Number((income.value - expenses.value).toFixed(2)))
 const handleTransactionSubmitted = async (transactionData: TransactionPayload) => {
   try {
     const { category, ...transactionWithoutCategory } = transactionData
-
     const response = await api.post<Transaction>('/et/transactions', {
       ...transactionWithoutCategory,
       category: category?.id ? { id: category.id } : category,
     })
-
     const txFromServer = response.data
     const categoryFromServer = txFromServer.category
     const resolvedCategory = (() => {
-      if (categoryFromServer && categoryFromServer.name) {
-        return categoryFromServer
-      }
-
-      if (category?.id != null) {
-        return categories.value.find((c) => c.id === category.id) ?? category
-      }
-
+      if (categoryFromServer && categoryFromServer.name) return categoryFromServer
+      if (category?.id != null) return categories.value.find((c) => c.id === category.id) ?? category
       return categoryFromServer ?? category ?? null
     })()
-
-    transactionArray.value.push({
-      ...txFromServer,
-      category: resolvedCategory,
-    })
-
+    transactionArray.value.push({ ...txFromServer, category: resolvedCategory })
     toast.success('Neue Transaktion erfolgreich hinzugefügt!')
   } catch (error: any) {
-    if (error.response?.status === 403) {
-      toast.error('Keine Berechtigung für diese Transaktion.')
-    } else {
-      toast.error('Fehler beim erstellen der Transaktion.')
-    }
+    if (error.response?.status === 403) toast.error('Keine Berechtigung.')
+    else toast.error('Fehler beim Erstellen der Transaktion.')
   }
 }
 
@@ -215,102 +206,136 @@ const refreshData = async () => {
   try {
     const response = await api.get<Transaction[]>('/et/transactions')
     transactionArray.value = response.data
-  }  catch (error: any) {
-    if (error.response?.status === 403) {
-      toast.error('Keine Berechtigung für diese Kategorie.')
-    } else {
-      toast.error('Fehler beim Erstellen der Kategorie')
-    }
-    throw error
+  }  catch {
+    toast.error('Fehler beim Aktualisieren')
   }
 }
 
 const handleTransactionDeleted = async (id: number) => {
   try {
     await api.delete(`/et/transaction/${id}`)
-    toast.success('Die Transaktion wurde erfolgreich gelöscht.')
+    toast.success('Transaktion gelöscht.')
     await refreshData()
-  } catch (error: any) {
-    if (error.response?.status === 403) {
-      toast.error('Keine Berechtigung für diese Transaktion.')
-    } else {
-      toast.error('Fehler beim Löschen der Transaktion.')
-    }
+  } catch {
+    toast.error('Fehler beim Löschen.')
   }
 }
 </script>
 
 <style scoped>
-.container {
-  max-width: 1200px;
+:root {
+  --primary-green: #00C853;
+  --card-bg-dark: #1e293b;
+}
+
+.dashboard-container {
+  max-width: 96%;
   margin: 0 auto;
   padding: 2rem;
-}
-
-.content {
   display: flex;
-  gap: 2rem;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 3rem; /* Space between Main Dashboard and Tools */
 }
 
-/* Sidebar Styling */
-.summary {
-  flex: 0 0 350px; /* Fixed width for sidebar */
-  background-color: var(--card-bg, #1f2937); /* Fallback dark bg */
+/* --- Main Area Styling --- */
+.main-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.stats-overview {
+  background: var(--card-bg-dark, #1e293b);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.charts-grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.chart-card, .trend-chart-card {
+  background: var(--card-bg-dark, #1e293b);
   padding: 1.5rem;
-  border-radius: 1rem;
-  color: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255,255,255,0.05);
+  color: white; /* Ensure text is white on dark bg */
+}
+
+/* --- Actions Area Styling --- */
+.actions-area {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-/* Main Content Styling */
-.dashboard {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+.tools-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Side by side equal width */
+  gap: 1.5rem;
 }
 
-/* Buttons */
 .export-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #00C853 0%, #10b981 100%);
   border: none;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
+  padding: 1rem;
+  border-radius: 1rem;
   color: white;
   font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
 }
 .export-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 200, 83, 0.4);
 }
 
-/* Chart Grids */
-.charts-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  width: 100%;
+.tool-card {
+  background: var(--card-bg-dark, #1e293b);
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  color: white; /* Ensure text is white */
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
-.trend-chart-container {
-  width: 100%;
-  margin-top: 1rem;
+
+
+:deep(h3) {
+  margin-bottom: 1.25rem;
+  font-size: 1.5rem; /* Increased from 1.125rem */
+  font-weight: 700;
+  color: #00C853;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 1; /* Removed opacity for better visibility */
 }
 
-/* Responsive */
+/* --- Responsive --- */
 @media (max-width: 1024px) {
-  .content {
-    flex-direction: column;
+  .charts-grid-row, .tools-grid {
+    grid-template-columns: 1fr;
   }
   
-  .summary {
-    width: 100%;
-    flex: none;
+  .stats-overview {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
   }
 }
 </style>

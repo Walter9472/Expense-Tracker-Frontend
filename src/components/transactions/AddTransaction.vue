@@ -15,7 +15,7 @@
           placeholder="Miete, Gehalt, Bonus..."
           autocomplete="off"
           required
-        >
+        />
       </div>
 
       <div class="form-group">
@@ -29,7 +29,7 @@
           v-model="amount"
           placeholder="z. B. 199.95"
           required
-        >
+        />
       </div>
 
       <div class="form-group">
@@ -52,7 +52,11 @@
             v-model="selectedCategory"
           >
             <option disabled :value="null">-- Bitte auswählen --</option>
-            <option v-for="category in categories" :key="category.name + String(category.id ?? '')" :value="category">
+            <option
+              v-for="category in categories"
+              :key="category.name + String(category.id ?? '')"
+              :value="category"
+            >
               {{ category.name }}
             </option>
           </select>
@@ -73,7 +77,7 @@
             type="text"
             placeholder="z. B. Lebensmittel"
             autocomplete="off"
-          >
+          />
         </div>
         <div class="form-group">
           <label class="label" for="category-description">Beschreibung (optional)</label>
@@ -84,7 +88,7 @@
             type="text"
             placeholder="Kurzbeschreibung"
             autocomplete="off"
-          >
+          />
         </div>
         <div class="form-group">
           <label class="label" for="category-color">Farbe (optional)</label>
@@ -93,7 +97,7 @@
             class="input-field color-input"
             v-model="newCategoryColor"
             type="color"
-          >
+          />
         </div>
         <div class="form-actions">
           <button class="btn secondary" type="button" @click="createCategoryHandler">
@@ -109,7 +113,7 @@
   </section>
 </template>
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useToast } from 'vue-toastification'
 
 interface Category {
@@ -230,6 +234,26 @@ const createCategoryHandler = async () => {
 </script>
 
 <style scoped>
+.card-header {
+  margin-bottom: var(--space-lg, 1.5rem);
+  display: flex;
+  flex-direction: column; /* Prevents overlap */
+  gap: 0.5rem;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.5rem; /* Matches bigger dashboard titles */
+  line-height: 1.2;
+  color: #00C853; /* Green requested */
+}
+
+.card-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #9ca3af; /* Muted gray for subtitle */
+}
+
 .form {
   display: grid;
   gap: var(--space-md);
@@ -244,11 +268,13 @@ const createCategoryHandler = async () => {
 .link-btn {
   background: none;
   border: none;
-  color: var(--color-primary);
+  color: #00C853; /* Green link */
   cursor: pointer;
   font: inherit;
   padding: 0;
   text-align: left;
+  margin-top: 0.5rem;
+  font-weight: 500;
 }
 
 .link-btn:hover {
@@ -256,17 +282,43 @@ const createCategoryHandler = async () => {
 }
 
 .new-category {
-  border: 1px solid var(--color-border, #e5e7eb);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: var(--radius-md, 8px);
   padding: var(--space-md);
-  background: var(--color-surface, #f9fafb);
+  background: rgba(255,255,255,0.05); /* Subtle dark overlay instead of white */
   display: grid;
   gap: var(--space-md);
+  margin-top: 1rem;
 }
 
 .new-category__title {
   margin: 0;
   font-size: 1rem;
+  color: #00C853; /* Green requested */
+  font-weight: 600;
+}
+
+.input-field, .select-field {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #374151;
+  background: #1f2937;
+  color: white;
+}
+
+.input-field:focus, .select-field:focus {
+  outline: none;
+  border-color: #00C853;
+  box-shadow: 0 0 0 2px rgba(0, 200, 83, 0.2);
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151; /* Dark gray for light background */
+  font-size: 0.95rem;
 }
 
 .color-input {
@@ -274,8 +326,24 @@ const createCategoryHandler = async () => {
   height: 2.5rem;
 }
 
+.btn {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: #00C853;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
 .btn.secondary {
-  background-color: #4b5563; /* muted */
+  background-color: #4b5563;
 }
 
 .btn.secondary:hover {
