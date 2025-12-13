@@ -15,21 +15,7 @@ import type { Transaction } from '@/types/Transaction'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
-interface Category {
-  id: number | null
-  name: string
-  color?: string
-}
 
-interface Transaction {
-  id: number
-  title: string
-  amount: number
-  date: string
-  type: 'EINKOMMEN' | 'AUSGABEN'
-  description?: string
-  category?: Category | null
-}
 
 const props = defineProps<{
   transactions: Transaction[]
