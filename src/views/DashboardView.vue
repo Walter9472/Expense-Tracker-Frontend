@@ -39,11 +39,18 @@
           <h3>Letzte Buchungen</h3>
           <TransactionList
             id="transactions"
-            :transactions="transactionArray"
+            :transactions="paginatedTransactions"
             :categories="categories"
             @transactionDeleted="handleTransactionDeleted"
             class="transaction-list-scrollable"
           />
+          <button 
+            v-if="visibleCount < transactionArray.length" 
+            @click="loadMore" 
+            class="load-more-btn"
+          >
+            Mehr laden
+          </button>
         </div>
 
         <div class="tool-card form-card">
@@ -211,6 +218,19 @@ const refreshData = async () => {
   }
 }
 
+const visibleCount = ref(5) // Initial limit
+
+// Computed: Sort by date desc (newest first) and slice
+const paginatedTransactions = computed(() => {
+  return [...transactionArray.value]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, visibleCount.value)
+})
+
+const loadMore = () => {
+  visibleCount.value += 5
+}
+
 const handleTransactionDeleted = async (id: number) => {
   try {
     await api.delete(`/et/transaction/${id}`)
@@ -337,5 +357,23 @@ const handleTransactionDeleted = async (id: number) => {
     gap: 1.5rem;
     align-items: stretch;
   }
+}
+
+.load-more-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--primary-green);
+  color: var(--primary-green);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.load-more-btn:hover {
+  background: var(--primary-green);
+  color: white;
 }
 </style>
