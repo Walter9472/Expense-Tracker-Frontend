@@ -37,6 +37,30 @@
       <div class="tools-grid">
         <div class="tool-card list-card">
           <h3>Letzte Buchungen</h3>
+
+          <!-- NEW: Filter Controls -->
+          <div class="filter-controls">
+            <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Suchen..."
+            class="filter-input"
+            />
+            <div class="filter-row">
+              <select v-model="selectedCategory" class="filter-select">
+                <option :value="null">Alle Kategorien</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                  {{ cat.name }}
+                </option>
+              </select>
+              <select v-model="selectedType" class="filter-select">
+                <option :value="null">Alle Typen</option>
+                <option value="EINKOMMEN">Einnahmen</option>
+                <option value="AUSGABEN">Ausgaben</option>
+              </select>
+            </div>
+          </div>
+
           <TransactionList
             id="transactions"
             :transactions="paginatedTransactions"
@@ -44,9 +68,9 @@
             @transactionDeleted="handleTransactionDeleted"
             class="transaction-list-scrollable"
           />
-          <button 
-            v-if="visibleCount < transactionArray.length" 
-            @click="loadMore" 
+          <button
+            v-if="visibleCount < transactionArray.length"
+            @click="loadMore"
             class="load-more-btn"
           >
             Mehr laden
@@ -80,6 +104,7 @@ import {getToken} from "@/service/authService.ts";
 import ExpenseChart from '../components/dashboard/ExpenseChart.vue'
 import IncomePieChart from '../components/dashboard/IncomePieChart.vue'
 import FinancialTrendChart from '../components/dashboard/FinancialTrendChart.vue'
+import { watch } from 'vue'
 
 const toast = useToast()
 const { checkAuthStatus } = useAuth()
@@ -113,6 +138,11 @@ interface NewCategoryPayload {
 
 const transactionArray = ref<Transaction[]>([])
 const categories = ref<Category[]>([])
+const searchQuery = ref('')
+const selectedCategory = ref<number | null>(null)
+const selectedType = ref<string | null>(null)
+
+
 
 onMounted(async () => {
   if (checkAuthStatus()) {
@@ -120,6 +150,30 @@ onMounted(async () => {
   }
 })
 
+watch([searchQuery, selectedCategory, selectedType], () => {
+  visibleCount.value = 5
+})
+
+const filteredTransactions = computed(() => {
+  return transactionArray.value.filter(t => {
+    // 1. Text Search (Title or Description)
+  const textMatch= searchQuery.value ? (t.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+  ||
+  t.description?.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    :true
+
+    // 2. Category Filter
+    const categoryMatch = selectedCategory.value
+      ? t.category?.id === selectedCategory.value
+      : true
+    // 3. Type Filter
+    const typeMatch = selectedType.value
+      ? t.type === selectedType.value
+      : true
+
+    return textMatch && categoryMatch && typeMatch
+  })
+})
 const downloadCsv = async () => {
   try {
     const token = getToken()
@@ -222,7 +276,7 @@ const visibleCount = ref(5) // Initial limit
 
 // Computed: Sort by date desc (newest first) and slice
 const paginatedTransactions = computed(() => {
-  return [...transactionArray.value]
+  return [...filteredTransactions.value] // Change here
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, visibleCount.value)
 })
@@ -351,7 +405,7 @@ const handleTransactionDeleted = async (id: number) => {
   .charts-grid-row, .tools-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .stats-overview {
     flex-direction: column;
     gap: 1.5rem;
@@ -376,4 +430,24 @@ const handleTransactionDeleted = async (id: number) => {
   background: var(--primary-green);
   color: white;
 }
+.filter-controls {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.filter-input, .filter-select {
+  padding: 0.5rem;
+  background: rgba(255,, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: black;
+  width: 100%;
+}
+.filter-row {
+  display: flex;
+  gap: 0.5rem;
+}
+/* Placeholder color fix */
+::placeholder { color: #9ca3af; }
 </style>
