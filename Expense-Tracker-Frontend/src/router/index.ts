@@ -1,23 +1,63 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView,
+      redirect: '/dashboard',
     },
     {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue'),
+      meta: { requiresGuest: true },
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
+      meta: { requiresGuest: true },
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('../views/DashboardView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/transactions',
+      name: 'transactions',
+      component: () => import('../views/TransactionsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/categories',
+      name: 'categories',
+      component: () => import('../views/CategoriesView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/ProfileView.vue'),
+      meta: { requiresAuth: true },
     },
   ],
+})
+
+// Navigation guard
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  const isAuthenticated = !!token
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next('/login')
+  } else if (to.meta.requiresGuest && isAuthenticated) {
+    next('/dashboard')
+  } else {
+    next()
+  }
 })
 
 export default router
