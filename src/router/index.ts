@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import { isAuthenticated } from '../service/authService'
+import { useAuthStore } from '../stores/auth'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -9,7 +9,12 @@ const router = createRouter({
       name: 'home',
       component: () => import('../views/DashboardView.vue'),
       meta: { requiresAuth: true } // Hinzufügen!
-
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/ProfileView.vue'),
+      meta: { requiresAuth: true }
     },
     {
       path: '/about',
@@ -32,18 +37,19 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) =>{
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
-  const authenticated = isAuthenticated()
+  const authenticated = authStore.isAuthenticated
 
-  if(requiresAuth && !authenticated){
+  if (requiresAuth && !authenticated) {
     // Geschützte Route, aber nicht angemeldet → Login
     next('/login')
-  }else if(requiresGuest && authenticated){
+  } else if (requiresGuest && authenticated) {
     // Login/Register, aber bereits angemeldet → Home
     next('/')
-  }else {
+  } else {
     next()
   }
 })
