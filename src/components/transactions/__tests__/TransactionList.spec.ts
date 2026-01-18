@@ -112,8 +112,8 @@ describe('TransactionList', () => {
         })
 
         const items = wrapper.findAll('.transaction-item')
-        expect(items[0].classes()).toContain('plus')
-        expect(items[1].classes()).toContain('minus')
+        expect(items[0]!.classes()).toContain('plus')
+        expect(items[1]!.classes()).toContain('minus')
     })
 
     it('emits transactionDeleted event when delete button is clicked', async () => {
