@@ -34,13 +34,14 @@
             </div>
           </div>
 
-          <TransactionList
-            id="transactions"
-            :transactions="paginatedTransactions"
-            :categories="categories"
-            @transactionDeleted="handleTransactionDeleted"
-            class="transaction-list-scrollable"
-          />
+          <div class="transaction-list-wrapper">
+            <TransactionList
+              id="transactions"
+              :transactions="paginatedTransactions"
+              :categories="categories"
+              @transactionDeleted="handleTransactionDeleted"
+            />
+          </div>
           <button
             v-if="visibleCount < filteredTransactions.length"
             @click="loadMore"
@@ -259,7 +260,30 @@ const downloadCsv = async () => {
   border-radius: 1.5rem;
   border: 1px solid rgba(255,255,255,0.05);
   color: white;
+  display: flex;
+  flex-direction: column;
 }
+
+.transaction-list-wrapper {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Custom Scrollbar for better looks */
+.transaction-list-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+.transaction-list-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+.transaction-list-wrapper::-webkit-scrollbar-thumb {
+  background: #00C853;
+  border-radius: 10px;
+}
+
 
 .export-btn {
   background: linear-gradient(135deg, #00C853 0%, #10b981 100%);
