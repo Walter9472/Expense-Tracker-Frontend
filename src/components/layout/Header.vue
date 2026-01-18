@@ -7,9 +7,8 @@
       </div>
       <nav class="navbar-actions">
         <template v-if="isAuthenticated">
-          <router-link to="/">Home</router-link>
-          <a href="#transactions">Transaktionen</a>
-          <a href="#neue-transaktion">Neue Transaktion</a>
+          <router-link to="/">Dashboard</router-link>
+          <router-link to="/transactions">Transaktionen</router-link>
           <router-link to="/profile">Profil</router-link>
           <button @click="handleLogout" class="logout-btn">Abmelden</button>
         </template>

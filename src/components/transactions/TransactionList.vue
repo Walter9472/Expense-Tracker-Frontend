@@ -1,17 +1,6 @@
 <template>
   <section class="card transaction-card">
-    <!-- Header is now handled by parent grid layout usually, but we keep it structure-wise if needed, 
-         though the user has titles in the parent DashboardView tool-card. 
-         But wait, Dashboard template wraps this in a .tool-card with h3.
-         If I keep this header, we might have double titles again.
-         The component `TransactionList` is used inside `DashboardView` which has `<h3>Letzte Buchungen</h3>`.
-         Wait, `TransactionList` has `<h3 class="card-title">Transaktionen</h3>`?
-         If so, that's a double title. The user complained about double titles in Pie Chart.
-         Better remove the internal header here too if `DashboardView` provides it.
-         However, looking at `DashboardView.vue` (Step 455), it has:
-         <div class="tool-card list-card"> <h3>Letzte Buchungen</h3> <TransactionList ... /> </div>
-         So YES, I should remove the internal header from TransactionList to avoid duplication or conflict.
-    -->
+
     <ul class="transaction-list">
       <li v-if="!transactionItems.length" class="transaction-item empty">
         <span class="empty-state">Es wurden noch keine Transaktionen erfasst.</span>
@@ -25,7 +14,7 @@
         <div class="transaction-meta">
           <div class="transaction-titles-row">
              <span class="transaction-title">{{ transaction.title }}</span>
-             <span 
+             <span
                class="transaction-type-label"
                :class="transaction.type === 'EINKOMMEN' ? 'income' : 'expense'"
              >

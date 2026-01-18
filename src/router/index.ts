@@ -6,9 +6,15 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
+      name: 'dashboard',
       component: () => import('../views/DashboardView.vue'),
-      meta: { requiresAuth: true } // Hinzufügen!
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/transactions',
+      name: 'transactions',
+      component: () => import('../views/TransactionsView.vue'),
+      meta: { requiresAuth: true }
     },
     {
       path: '/profile',
