@@ -311,9 +311,15 @@ const downloadCsv = async () => {
 
 .filter-input, .filter-select {
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1f2937; /* Solid dark background matching AddTransaction */
+  border: 1px solid #374151;
   border-radius: 0.5rem;
+  color: white;
+  width: 100%;
+}
+
+.filter-select option {
+  background: #1f2937;
   color: white;
 }
 

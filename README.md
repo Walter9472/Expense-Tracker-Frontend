@@ -1,54 +1,50 @@
-# Expense-Tracker-Frontend
+# Expense Tracker - Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Das Frontend des Expense Trackers ist eine leistungsstarke Single-Page-Application (SPA), die mit Vue 3 entwickelt wurde. Sie bietet eine interaktive Oberfläche zur Verwaltung persönlicher Finanzen.
 
-## Recommended IDE Setup
+## Key Features
+- **Dashboard**: Visualisierung der Finanzen durch interaktive Charts (Pie-Chart, Line-Chart, Bar-Chart).
+- **Transaktionsverwaltung**: Zentrale Ansicht für alle Buchungen mit Such- und Filterfunktionen.
+- **Scrollbare Listen**: Optimierte Benutzeroberfläche für große Datenmengen.
+- **Responsive Design**: Modernes, glassmorphenes UI, das auf allen Geräten gut aussieht.
+- **CSV-Export**: Einfacher Download der Transaktionsdaten für externe Analysen.
+- **Benutzerführung**: Authentifizierungs-Guards sorgen dafür, dass geschützte Bereiche nur für angemeldete Nutzer zugänglich sind.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## Technologiestack
+- **Framework**: Vue.js 3 (Composition API)
+- **State Management**: Pinia
+- **Routing**: Vue Router
+- **HTTP Client**: Axios
+- **Charts**: Chart.js
+- **Styling**: Vanilla CSS (Modern CSS features like Gradients & Glassmorphism)
+- **Build Tool**: Vite
+- **Testing**: Vitest, Vue Test Utils
 
-## Recommended Browser Setup
+## Lokale Entwicklung
+1. **Abhängigkeiten installieren**:
+   ```bash
+   npm install
+   ```
+2. **Entwicklungsserver starten**:
+   ```bash
+   npm run dev
+   ```
+3. **Build für Produktion**:
+   ```bash
+   npm run build
+   ```
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## Deployment Einstellungen (Render)
+Für den erfolgreichen Betrieb auf Render muss folgende Umgebungsvariable gesetzt werden:
+- `VITE_API_BASE_URL`: Die URL deines Backends (z.B. `https://dein-backend.onrender.com`).
 
-## Type Support for `.vue` Imports in TS
+Standardmäßig versucht das Frontend, eine Verbindung zu `http://localhost:8080` herzustellen.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+## Projektstruktur
+- `src/views`: Enthält die Hauptseiten (Login, Register, Dashboard, Transactions, Profile).
+- `src/components`: Wiederverwendbare UI-Komponenten (Layout, Transactions, Dashboard).
+- `src/service`: API-Anbindung und Authentifizierungs-Logik.
+- `src/composables`: Kapselung von Logik (z.B. `useAuth`).
 
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+---
+*Viel Spaß beim Verwalten deiner Finanzen!*
