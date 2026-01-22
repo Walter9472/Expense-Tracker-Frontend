@@ -17,8 +17,8 @@ const mockLogin = vi.fn()
 vi.mock('@/composables/useAuth', () => ({
     useAuth: () => ({
         login: mockLogin,
-        isLoading: { value: false },
-        error: { value: null }
+        isLoading: ref(false),
+        error: ref(null)
     })
 }))
 
@@ -65,13 +65,15 @@ describe('LoginView', () => {
         const wrapper = mount(LoginView, {
             global: {
                 stubs: {
-                    'router-link': true
+                    RouterLink: {
+                        template: '<a><slot /></a>'
+                    }
                 }
             }
         })
 
         expect(wrapper.text()).toContain('Noch kein Konto?')
-        expect(wrapper.text()).toContain('Jetzt registrieren')
+        expect(wrapper.html()).toContain('Jetzt registrieren')
     })
 
     it('shows error message when error state is set', async () => {

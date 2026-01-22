@@ -69,8 +69,6 @@ describe('DashboardView', () => {
                 stubs: {
                     Balance: true,
                     IncomeExpense: true,
-                    TransactionList: true,
-                    AddTransaction: true,
                     ExpenseChart: true,
                     IncomePieChart: true,
                     FinancialTrendChart: true
@@ -81,7 +79,6 @@ describe('DashboardView', () => {
         await flushPromises()
 
         expect(api.get).toHaveBeenCalledWith('/et/transactions')
-        expect(api.get).toHaveBeenCalledWith('/et/categories')
         expect(wrapper.exists()).toBe(true)
     })
 
@@ -93,8 +90,6 @@ describe('DashboardView', () => {
                 stubs: {
                     Balance: true,
                     IncomeExpense: true,
-                    TransactionList: true,
-                    AddTransaction: true,
                     ExpenseChart: true,
                     IncomePieChart: true,
                     FinancialTrendChart: true
@@ -104,12 +99,12 @@ describe('DashboardView', () => {
 
         await flushPromises()
 
-        expect(wrapper.find('.main-dashboard').exists()).toBe(true)
-        expect(wrapper.find('.actions-area').exists()).toBe(true)
-        expect(wrapper.find('.export-btn').exists()).toBe(true)
+        expect(wrapper.find('.dashboard-container').exists()).toBe(true)
+        expect(wrapper.find('.stats-overview').exists()).toBe(true)
+        expect(wrapper.find('.visualizations').exists()).toBe(true)
     })
 
-    it('displays export button', async () => {
+    it('does not have export button anymore (moved to Transactions)', async () => {
         vi.mocked(api.get).mockResolvedValue({ data: [] })
 
         const wrapper = mount(DashboardView, {
@@ -117,8 +112,6 @@ describe('DashboardView', () => {
                 stubs: {
                     Balance: true,
                     IncomeExpense: true,
-                    TransactionList: true,
-                    AddTransaction: true,
                     ExpenseChart: true,
                     IncomePieChart: true,
                     FinancialTrendChart: true
@@ -128,8 +121,6 @@ describe('DashboardView', () => {
 
         await flushPromises()
 
-        const exportBtn = wrapper.find('.export-btn')
-        expect(exportBtn.exists()).toBe(true)
-        expect(exportBtn.text()).toContain('Als CSV exportieren')
+        expect(wrapper.find('.export-btn').exists()).toBe(false)
     })
 })
