@@ -1,155 +1,207 @@
-<template>
-  <main class="dashboard-container">
-    <!-- Stats Row -->
-    <section class="stats-overview">
-      <Balance :total="total" />
-      <IncomeExpense :income="income" :expenses="expenses" />
-    </section>
-
-    <!-- Visualizations -->
-    <section class="visualizations">
-      <div class="charts-grid-row">
-        <div class="chart-card">
-          <h3>Einnahmen vs. Ausgaben</h3>
-          <IncomePieChart :transactions="transactionArray" />
-        </div>
-        <div class="chart-card">
-          <h3>Ausgaben nach Kategorie</h3>
-          <ExpenseChart :transactions="transactionArray" />
-        </div>
-      </div>
-
-      <!-- Trend Chart -->
-      <div class="trend-chart-card">
-        <h3>Finanzverlauf</h3>
-        <FinancialTrendChart :transactions="transactionArray" />
-      </div>
-    </section>
-  </main>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import Balance from '../components/dashboard/Balance.vue'
-import IncomeExpense from '../components/dashboard/IncomeExpense.vue'
-import api from '../service/api'
-import { useToast } from 'vue-toastification'
-import { useAuth } from '../composables/useAuth'
-import ExpenseChart from '../components/dashboard/ExpenseChart.vue'
-import IncomePieChart from '../components/dashboard/IncomePieChart.vue'
-import FinancialTrendChart from '../components/dashboard/FinancialTrendChart.vue'
+import { computed, onMounted, ref } from 'vue'
+import { useTransactions } from '@/composables/useTransactions'
+import TrendChart from '@/components/charts/TrendChart.vue'
+import CategoryBreakdown from '@/components/charts/CategoryBreakdown.vue'
+import TransactionRow from '@/components/transactions/TransactionRow.vue'
+import { formatCurrency } from '@/utils/format'
 
-const toast = useToast()
-const { checkAuthStatus } = useAuth()
+const { transactions, balance, fetchTransactions, fetchBalance } = useTransactions()
 
-interface Category {
-  id: number | null
-  name: string
-  description?: string
-  color?: string
-}
-
-interface Transaction {
-  id: number
-  title: string
-  amount: number
-  date: string
-  type: 'EINKOMMEN' | 'AUSGABEN'
-  description?: string
-  category?: Category | null
-}
-
-const transactionArray = ref<Transaction[]>([])
+const ready = ref(false)
 
 onMounted(async () => {
-  if (checkAuthStatus()) {
-    await loadTransactions()
+  await Promise.all([fetchTransactions(), fetchBalance()])
+  ready.value = true
+})
+
+const now = new Date()
+const monthName = new Intl.DateTimeFormat('de-DE', { month: 'long' }).format(now)
+
+const thisMonth = computed(() => {
+  let income = 0
+  let expense = 0
+  for (const tx of transactions.value) {
+    const d = new Date(tx.date)
+    if (d.getFullYear() !== now.getFullYear() || d.getMonth() !== now.getMonth()) continue
+    if (tx.type === 'EINKOMMEN') income += tx.amount
+    else expense += tx.amount
   }
+  return { income, expense }
 })
 
-const loadTransactions = async () => {
-  try {
-    const response = await api.get<Transaction[]>('/et/transactions')
-    transactionArray.value = response.data
-  } catch {
-    toast.error('Fehler beim Laden der Daten')
-  }
-}
-
-const income = computed(() => {
-  return transactionArray.value
-    .filter((transaction) => transaction.type == 'EINKOMMEN')
-    .reduce((acc, transaction) => acc + transaction.amount, 0)
+const incomeShare = computed(() => {
+  const { income, expense } = thisMonth.value
+  return (income / (income + expense)) * 100
 })
 
-const expenses = computed(() => {
-  return transactionArray.value
-    .filter((transaction) => transaction.type == 'AUSGABEN')
-    .reduce((acc, transaction) => acc + transaction.amount, 0)
-})
-
-const total = computed(() => Number((income.value - expenses.value).toFixed(2)))
+const recent = computed(() => transactions.value.slice(0, 5))
 </script>
 
+<template>
+  <section class="statement" aria-labelledby="balance-label">
+    <p id="balance-label" class="statement__label">Kontostand</p>
+    <p class="statement__balance" :class="{ soll: balance < 0, 'is-pending': !ready }">
+      {{ ready ? formatCurrency(balance) : '…' }}
+    </p>
+
+    <p v-if="ready" class="statement__summary">
+      <template v-if="!thisMonth.income && !thisMonth.expense">
+        Im {{ monthName }} hast du noch nichts gebucht.
+      </template>
+      <template v-else-if="!thisMonth.income">
+        Im {{ monthName }} hast du <strong>{{ formatCurrency(thisMonth.expense) }}</strong> ausgegeben
+        und noch nichts eingenommen.
+      </template>
+      <template v-else-if="!thisMonth.expense">
+        Im {{ monthName }} hast du <strong>{{ formatCurrency(thisMonth.income) }}</strong> eingenommen
+        und noch nichts ausgegeben.
+      </template>
+      <template v-else>
+        Im {{ monthName }} hast du <strong>{{ formatCurrency(thisMonth.income) }}</strong> eingenommen
+        und <strong>{{ formatCurrency(thisMonth.expense) }}</strong> ausgegeben.
+      </template>
+    </p>
+
+    <div
+      v-if="ready && (thisMonth.income || thisMonth.expense)"
+      class="ratio"
+      role="img"
+      :aria-label="`${monthName}: ${formatCurrency(thisMonth.income)} Einnahmen, ${formatCurrency(thisMonth.expense)} Ausgaben`"
+    >
+      <div class="ratio__bar">
+        <span class="ratio__part ratio__part--haben" :style="{ width: `${incomeShare}%` }" />
+        <span class="ratio__part ratio__part--soll" :style="{ width: `${100 - incomeShare}%` }" />
+      </div>
+      <div class="ratio__legend">
+        <span><span class="swatch" style="background: var(--haben)" /> Eingenommen</span>
+        <span>Ausgegeben <span class="swatch" style="background: var(--soll)" /></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="dash-grid">
+    <section class="panel">
+      <div class="panel__head">
+        <h2>Monatsverlauf</h2>
+        <span class="muted">letzte 6 Monate</span>
+      </div>
+      <div class="panel__body">
+        <TrendChart v-if="ready" :transactions="transactions" />
+        <p v-else class="muted">Wird geladen …</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__head">
+        <h2>Wohin das Geld geht</h2>
+      </div>
+      <div class="panel__body">
+        <CategoryBreakdown v-if="ready" :transactions="transactions" />
+        <p v-else class="muted">Wird geladen …</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel__head">
+      <h2>Letzte Buchungen</h2>
+      <RouterLink to="/transactions" class="text-btn">Alle Buchungen</RouterLink>
+    </div>
+    <p v-if="!ready" class="empty">Buchungen werden geladen …</p>
+    <div v-else-if="!recent.length" class="empty">
+      Noch keine Buchungen.
+      <RouterLink to="/transactions" class="text-btn">Erste Buchung eintragen</RouterLink>
+    </div>
+    <ul v-else class="ledger">
+      <TransactionRow v-for="tx in recent" :key="tx.id" :transaction="tx" />
+    </ul>
+  </section>
+</template>
+
 <style scoped>
-.dashboard-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+.statement {
+  margin-bottom: 2.5rem;
+  max-width: 720px;
 }
 
-.stats-overview {
-  background: #1e293b;
-  border-radius: 1.5rem;
-  padding: 2rem;
+.statement__label {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.statement__balance {
+  font-size: var(--t-hero);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  margin: 0.35rem 0 1rem;
+}
+
+.statement__balance.is-pending {
+  color: var(--rule);
+}
+
+.statement__summary {
+  font-size: var(--t-lg);
+  color: var(--ink-soft);
+  max-width: 46ch;
+}
+
+.statement__summary strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.ratio {
+  margin-top: 1.5rem;
+}
+
+.ratio__bar {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+}
+
+.ratio__part {
+  display: block;
+  height: 100%;
+}
+
+.ratio__part--haben {
+  background: var(--haben);
+  border-radius: 3px 0 0 3px;
+}
+
+.ratio__part--soll {
+  background: var(--soll);
+  border-radius: 0 3px 3px 0;
+}
+
+.ratio__legend {
   display: flex;
   justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: var(--t-sm);
+  color: var(--ink-soft);
+}
+
+.ratio__legend > span {
+  display: inline-flex;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.05);
+  gap: 0.4rem;
 }
 
-.visualizations {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.charts-grid-row {
+.dash-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-}
-
-.chart-card, .trend-chart-card {
-  background: #1e293b;
-  padding: 1.5rem;
-  border-radius: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.05);
-  color: white;
-}
-
-h3 {
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 1.5rem;
   margin-bottom: 1.5rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #00C853;
-  text-transform: uppercase;
 }
 
-@media (max-width: 1024px) {
-  .charts-grid-row {
+@media (max-width: 900px) {
+  .dash-grid {
     grid-template-columns: 1fr;
-  }
-
-  .stats-overview {
-    flex-direction: column;
-    gap: 1.5rem;
-    align-items: stretch;
   }
 }
 </style>

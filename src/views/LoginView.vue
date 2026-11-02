@@ -1,125 +1,49 @@
-<template>
-  <div class="login-container">
-    <div class="login-card">
-      <h1>Anmelden</h1>
-
-      <form @submit.prevent="handleLogin">
-        <div class="form-group">
-          <label for="username">Benutzername</label>
-          <input
-            id="username"
-            v-model="username"
-            type="text"
-            required
-            autocomplete="username"
-          />
-        </div>
-        <div class="form-group">
-          <label for="password">Passwort</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            autocomplete="current-password"
-          />
-        </div>
-        <div v-if="error" class="error-message">
-          {{ error }}
-        </div>
-
-        <button type="submit" :disabled="isLoading">
-          {{ isLoading ? 'Wird angemeldet...' : 'Anmelden' }}
-        </button>
-      </form>
-
-      <p class="register-link">
-        Noch kein Konto?
-        <router-link to="register">Jetzt registrieren</router-link>
-      </p>
-    </div>
-  </div>
-</template>
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useAuth } from '../composables/useAuth'
-import { useToast } from 'vue-toastification'
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import AuthLayout from '@/components/layout/AuthLayout.vue'
 
-const { login, isLoading, error } = useAuth()
-const toast = useToast()
+const router = useRouter()
+const authStore = useAuthStore()
 
-const username = ref('')
-const password = ref('')
+const form = reactive({ username: '', password: '' })
+const loading = ref(false)
+const error = ref('')
 
-const handleLogin = async () => {
+async function handleSubmit() {
+  loading.value = true
+  error.value = ''
   try {
-    await login(username.value, password.value)
-    toast.success('Erfolgreich angemeldet!')
-  }catch (err: any) {
-    toast.error(error.value || 'Login fehlgeschlagen')
+    await authStore.login({ ...form })
+    router.push('/')
+  } catch {
+    error.value = 'Benutzername oder Passwort stimmt nicht. Prüf deine Eingabe.'
+  } finally {
+    loading.value = false
   }
 }
 </script>
-<style scoped>
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 80vh;
-}
 
-.login-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.error-message {
-  color: red;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
-button {
-  width: 100%;
-  padding: 0.75rem;
-  background: #42b983;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.register-link {
-  margin-top: 1rem;
-  text-align: center;
-  font-size: 0.9rem;
-}
-</style>
+<template>
+  <AuthLayout>
+    <h1>Anmelden</h1>
+    <p v-if="error" class="form-error" role="alert">{{ error }}</p>
+    <form @submit.prevent="handleSubmit">
+      <div class="field">
+        <label for="username">Benutzername</label>
+        <input id="username" v-model="form.username" class="input" type="text" autocomplete="username" required />
+      </div>
+      <div class="field">
+        <label for="password">Passwort</label>
+        <input id="password" v-model="form.password" class="input" type="password" autocomplete="current-password" required />
+      </div>
+      <button type="submit" class="btn btn--block" :disabled="loading">
+        {{ loading ? 'Wird angemeldet …' : 'Anmelden' }}
+      </button>
+    </form>
+    <p class="auth__switch">
+      Noch kein Konto? <RouterLink to="/register" class="text-btn">Konto erstellen</RouterLink>
+    </p>
+  </AuthLayout>
+</template>

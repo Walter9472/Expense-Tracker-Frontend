@@ -1,72 +1,45 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import api from '@/service/api'
+import api from '@/services/api'
 import type { User, LoginCredentials, RegisterData } from '@/types'
 
 export const useAuthStore = defineStore('auth', () => {
-    const token = ref<string | null>(localStorage.getItem('token'))
-    const user = ref<User | null>(JSON.parse(localStorage.getItem('user') || 'null'))
+  const token = ref<string | null>(localStorage.getItem('token'))
+  const user = ref<User | null>(JSON.parse(localStorage.getItem('user') || 'null'))
 
-    const isAuthenticated = computed(() => !!token.value)
+  const isAuthenticated = computed(() => !!token.value)
 
-    async function login(credentials: LoginCredentials): Promise<boolean> {
-        try {
-            const response = await api.post('/login', credentials)
-            const jwtToken = response.data
+  async function login(credentials: LoginCredentials) {
+    const response = await api.post<string>('/login', credentials)
+    token.value = response.data
+    localStorage.setItem('token', response.data)
+    await fetchProfile()
+  }
 
-            if (jwtToken) {
-                token.value = jwtToken
-                // Initial user setup, fetch full profile afterwards if possible
-                user.value = { username: credentials.username, email: '' }
-                localStorage.setItem('token', jwtToken)
-                localStorage.setItem('user', JSON.stringify(user.value))
+  async function register(data: RegisterData) {
+    await api.post('/register', data)
+  }
 
-                // Try to fetch full profile immediately
-                await fetchUserProfile()
+  async function fetchProfile() {
+    const response = await api.get<User>('/profile')
+    user.value = response.data
+    localStorage.setItem('user', JSON.stringify(response.data))
+  }
 
-                return true
-            }
-            return false
-        } catch (error) {
-            console.error('Login failed:', error)
-            return false
-        }
-    }
+  function logout() {
+    token.value = null
+    user.value = null
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+  }
 
-    async function register(data: RegisterData): Promise<boolean> {
-        try {
-            await api.post('/register', data)
-            return true
-        } catch (error) {
-            console.error('Registration failed:', error)
-            return false
-        }
-    }
-
-    async function fetchUserProfile() {
-        try {
-            const response = await api.get('/profile')
-            user.value = response.data
-            localStorage.setItem('user', JSON.stringify(user.value))
-        } catch (error) {
-            console.error('Failed to fetch profile', error)
-        }
-    }
-
-    function logout() {
-        token.value = null
-        user.value = null
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-    }
-
-    return {
-        token,
-        user,
-        isAuthenticated,
-        login,
-        register,
-        logout,
-        fetchUserProfile
-    }
+  return {
+    token,
+    user,
+    isAuthenticated,
+    login,
+    register,
+    fetchProfile,
+    logout,
+  }
 })
